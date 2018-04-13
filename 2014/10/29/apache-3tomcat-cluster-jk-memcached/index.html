@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.lug.ustc.edu.cn/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="apache,tomcat,集群,mod_jk,memcached,centos," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Sean's Notes" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="注意本文不讨论原理，只讲述具体的搭建过程，而且步骤都经过了整理，否则过程可能会出现其他异常，请自行google。apache与tomcat整合的方式除了jk之外，使用apache自带的mod_ajp_proxy模块也可以很方便的完成。先来看一下架构图：属于正式环境中原session复制方案的改进。 1. 所需软件包12345678910111213jrrt-3.1.2-1.6.0-linux-x6">
+<meta name="keywords" content="apache,tomcat,集群,mod_jk,memcached,centos">
+<meta property="og:type" content="article">
+<meta property="og:title" content="apache+3tomcat+jk+memcached集群环境搭建">
+<meta property="og:url" content="http://seanlook.com/2014/10/29/apache-3tomcat-cluster-jk-memcached/index.html">
+<meta property="og:site_name" content="Sean&#39;s Notes">
+<meta property="og:description" content="注意本文不讨论原理，只讲述具体的搭建过程，而且步骤都经过了整理，否则过程可能会出现其他异常，请自行google。apache与tomcat整合的方式除了jk之外，使用apache自带的mod_ajp_proxy模块也可以很方便的完成。先来看一下架构图：属于正式环境中原session复制方案的改进。 1. 所需软件包12345678910111213jrrt-3.1.2-1.6.0-linux-x6">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://sean-images.qiniudn.com/apache_tomcat_cluster_msm.png">
+<meta property="og:updated_time" content="2015-03-25T16:46:23.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="apache+3tomcat+jk+memcached集群环境搭建">
+<meta name="twitter:description" content="注意本文不讨论原理，只讲述具体的搭建过程，而且步骤都经过了整理，否则过程可能会出现其他异常，请自行google。apache与tomcat整合的方式除了jk之外，使用apache自带的mod_ajp_proxy模块也可以很方便的完成。先来看一下架构图：属于正式环境中原session复制方案的改进。 1. 所需软件包12345678910111213jrrt-3.1.2-1.6.0-linux-x6">
+<meta name="twitter:image" content="http://sean-images.qiniudn.com/apache_tomcat_cluster_msm.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: 'WNWHBKUL26',
+      apiKey: 'cec5cc7d455c77d448433aa60f989766',
+      indexName: 'seanlook',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://seanlook.com/2014/10/29/apache-3tomcat-cluster-jk-memcached/"/>
+
+
+
+
+
+  <title>apache+3tomcat+jk+memcached集群环境搭建 | Sean's Notes</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?62e026415456b0339db6d3912577a9fa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Sean's Notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Stay hungry, stay foolish.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://seanlook.com/2014/10/29/apache-3tomcat-cluster-jk-memcached/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="seanlook">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar_sean.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Sean's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">apache+3tomcat+jk+memcached集群环境搭建</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-10-29T10:21:25+08:00">
+                2014-10-29
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2015-03-26T00:46:23+08:00">
+                2015-03-26
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/Web-Server/" itemprop="url" rel="index">
+                    <span itemprop="name">Web_Server</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2014/10/29/apache-3tomcat-cluster-jk-memcached/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2014/10/29/apache-3tomcat-cluster-jk-memcached/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2014/10/29/apache-3tomcat-cluster-jk-memcached/" class="leancloud_visitors" data-flag-title="apache+3tomcat+jk+memcached集群环境搭建">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>注意本文不讨论原理，只讲述具体的搭建过程，而且步骤都经过了整理，否则过程可能会出现其他异常，请自行google。apache与tomcat整合的方式除了jk之外，使用apache自带的mod_ajp_proxy模块也可以很方便的完成。<br>先来看一下架构图：<br><img src="http://sean-images.qiniudn.com/apache_tomcat_cluster_msm.png" alt="apache_tomcat_cluster_msm"><br>属于正式环境中原session复制方案的改进。</p>
+<h1 id="1-所需软件包"><a href="#1-所需软件包" class="headerlink" title="1. 所需软件包"></a>1. 所需软件包</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">jrrt-3.1.2-1.6.0-linux-x64.bin（或jdk1.6.0_33）   jvm</span><br><span class="line">httpd-2.2.26.tar.gz                              web服务器，处理静态资源</span><br><span class="line">apache-tomcat-6.0.32.tar.gz                      应用服务器，Servlet容器处理动态请求</span><br><span class="line">tomcat-connectors-1.2.30-src.tar.gz              apache与tomcat整合插件mod_jk.so</span><br><span class="line">tomcat-native.tar.gz                             APR加速tomcat，提高线程并发能力。使用tomcat自带版本。</span><br><span class="line">memcached-session-manager                        使用msm解决多tomcat集群时session同步问题所需jar包</span><br><span class="line">    asm-3.2.jar, couchbase-client-1.2.2.jar, </span><br><span class="line">    kryo-1.04.jar, kryo-serializers-0.11.jar</span><br><span class="line">    msm-kryo-serializer-1.6.5.jar</span><br><span class="line">    memcached-session-manager-1.6.5.jar</span><br><span class="line">    memcached-session-manager-tc6-1.6.5.jar</span><br><span class="line">    minlog-1.2.jar, reflectasm-1.01.jar</span><br><span class="line">    spymemcached-2.10.2.jar</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h1 id="2-安装过程"><a href="#2-安装过程" class="headerlink" title="2. 安装过程"></a>2. 安装过程</h1><h2 id="2-1-JDK"><a href="#2-1-JDK" class="headerlink" title="2.1 JDK"></a>2.1 JDK</h2><p>下载将JRockit二进制安装文件，赋予可执行权限<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># pwd</span><br><span class="line">/apps/test/java</span><br><span class="line"># chmod o+x jrrt*.bin</span><br><span class="line"># ./jrrt-3.1.2-1.6.0-linux-x64.bin</span><br></pre></td></tr></table></figure></p>
+<p>可不必为整个linux环境设置<code>JAVA_HOME=&quot;/apps/test/java/jrrt-3.1.2-1.6.0&quot;</code>，在tomcat中指定即可。</p>
+<h2 id="2-2-编译安装apache"><a href="#2-2-编译安装apache" class="headerlink" title="2.2 编译安装apache"></a>2.2 编译安装apache</h2><p>因为<code>tomcat-native</code>依赖于apr，所以这里先直接从 httpd-2.2.26/srclib 目录下安装apache自带的<code>apr</code>和<code>apr-util</code>。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@cachets httpd-2.2.26]# pwd</span><br><span class="line">/apps/test/soft_src/httpd-2.2.26</span><br><span class="line">[root@test httpd-2.2.26]# cd srclib/apr</span><br><span class="line">[root@test apr]# ./configure --prefix=/usr/local/apr</span><br><span class="line">[root@test apr]# make &amp;&amp; make install</span><br><span class="line">[root@test apr]# cd ../apr-util/</span><br><span class="line">[root@test apr-util]# ./configure --prefix=/usr/local/apr-util --with-apr=/usr/local/apr</span><br><span class="line">[root@test apr-util]# make &amp;&amp; make install</span><br></pre></td></tr></table></figure></p>
+<p>建议将srclib下的<code>pcre</code>也装上，主要是考虑后面转发请求时可能要使用地址rewrite，需要正则语法的支持。默认CentOS6.x已经安装了这个库。</p>
+<p>安装apache：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@test httpd-2.2.26]# ./configure --prefix=/apps/test/apache2 --enable-mods-shared=all --enable-modules=so --enable-rewrite --enable-deflate --with-mpm=worker --with-apr=/usr/local/apr --with-apr-util=/usr/local/apr-util</span><br><span class="line">[root@test httpd-2.2.26]# make &amp;&amp; make install</span><br></pre></td></tr></table></figure></p>
+<h2 id="2-3-安装tomcat"><a href="#2-3-安装tomcat" class="headerlink" title="2.3 安装tomcat"></a>2.3 安装tomcat</h2><p>解压apache-tomcat-6.0.32.tar.gz拷贝至/app/test/tomcat0，不建议使用root用户管理tomcat.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[test@cachets soft_src]$ tar -zxvf apache-tomcat-6.0.32.tar.gz</span><br><span class="line">[test@cachets soft_src]$ cp -a apache-tomcat-6.0.32 /app/crm/tomcat0</span><br><span class="line"></span><br><span class="line">// 安装tomcat-native（不用单独下载，在tomcat的bin目录中自带）</span><br><span class="line"># yum install -y openssl-devel apr-devel</span><br><span class="line">[root@cachets ~]# cd /app/test/soft_src/apache-tomcat-6.0.32/bin</span><br><span class="line">[root@cachets bin]# tar -zxvf tomcat-native.tar.gz</span><br><span class="line">[root@cachets bin]# cd tomcat-native-1.1.20-src/jni/native/</span><br><span class="line">[root@cachets native]# ./configure --with-apr=/usr/local/apr/bin/apr-1-config --with-ssl --with-java-home=/apps/test/java/jrrt-3.1.2-1.6.0</span><br><span class="line">[root@cachets native]# make &amp;&amp; make install</span><br></pre></td></tr></table></figure></p>
+<p>配置tomcat：</p>
+<p>tomcat默认参数是为开发环境制定，而非适合生产环境，尤其是内存和线程的配置，默认都很低，容易成为性能瓶颈。下面是一些配置示例，需要根据实际需要更改。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[crm@cachets tomcat0]$ vi bin/setenv.sh</span><br><span class="line">JAVA_OPTS=&quot;-XX:PermSize=128M -XX:MaxPermSize=256M -Xms1536M -Xmx2048M -verbosegc &quot;</span><br><span class="line">CATALINA_OPTS=&quot;-Dcom.sun.management.jmxremote.port=7091 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Djava.rmi.server.hostname=192.168.10.100&quot;</span><br><span class="line">JAVA_HOME=&quot;/apps/test/java/jrrt-3.1.2-1.6.0&quot;</span><br><span class="line">CATALINA_OPTS=&quot;$CATALINA_OPTS -Djava.library.path=/usr/local/apr/lib&quot;</span><br><span class="line">[crm@cachets tomcat0]$ chmod 755 bin/setenv.sh</span><br></pre></td></tr></table></figure></p>
+<p>bin目录下新建的可执行文件<code>setenv.sh</code>会由tomcat自动调用。上面的<code>jmxremote.authenticate</code>在正式环境中请务必设为true并设置用户名/密码，减少安全隐患，或者注释掉<code>CATALINA_OPTS</code>。（有时候出于性能调优的目的，才需要设置JMX）。对于具体的连接协议有不同的优化属性，参考如下：<br>对HTTP：</p>
+<pre><code>&lt;Connector port=&quot;8080&quot; 
+           protocol=&quot;org.apache.coyote.http11.Http11NioProtocol&quot;
+           URIEncoding=&quot;UTF-8&quot;
+           enableLookups=&quot;false&quot;
+
+           maxThreads=&quot;400&quot;
+           minSpareTheads=&quot;50&quot;   
+           acceptCount=&quot;400&quot;
+           acceptorThreadCount=&quot;2&quot;              
+           connectionTimeout=&quot;30000&quot; 
+           disableUploadTimeout=&quot;true&quot;
+
+           compression=&quot;on&quot;
+           compressionMinSize=&quot;2048&quot;
+           maxHttpHeaderSize=&quot;16384&quot;
+           redirectPort=&quot;8443&quot;
+ /&gt;
+</code></pre><p>对AJP：</p>
+<pre><code>&lt;Connector port=&quot;8009&quot; protocol=&quot;AJP/1.3&quot; 
+           maxThreads=&quot;300&quot; minSpareThreads=&quot;50&quot;
+           connectionTimeout=&quot;30000&quot;
+           keepAliveTimeout=&quot;30000&quot;
+           acceptCount=&quot;200&quot;
+           URIEncoding=&quot;UTF-8&quot;
+           enableLookups=&quot;false&quot;
+           redirectPort=&quot;8443&quot; /&gt;
+</code></pre><h2 id="2-4-安装jk"><a href="#2-4-安装jk" class="headerlink" title="2.4 安装jk"></a>2.4 安装jk</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[crm@test soft_src]$ tar -zxvf tomcat-connectors-1.2.30-src.tar.gz</span><br><span class="line">[crm@test soft_src]$ cd tomcat-connectors-1.2.30-src/native</span><br><span class="line">[root@test native]# ./configure --with-apxs=/apps/test/apache2/bin/apxs</span><br><span class="line">[root@test native]# make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+<p>此时可以看到在<code>/apps/test/apache2/modules</code>下有<code>mod_jk.so</code>文件，用于连接apache与tomcat。</p>
+<h2 id="2-5-配置（集群）负载均衡选项"><a href="#2-5-配置（集群）负载均衡选项" class="headerlink" title="2.5 配置（集群）负载均衡选项"></a>2.5 配置（集群）负载均衡选项</h2><h3 id="2-5-1-apache"><a href="#2-5-1-apache" class="headerlink" title="2.5.1 apache"></a>2.5.1 apache</h3><p>建立配置文件<code>httpd-jk.conf</code>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[root@cachets ~]# cd /app/test/</span><br><span class="line">[root@cachets crm]# vi apache2/conf/extra/httpd-jk.conf</span><br><span class="line"># Load mod_jk module</span><br><span class="line">LoadModule jk_module modules/mod_jk.so</span><br><span class="line"># 指定保存了worker相关工作属性定义的配置文件</span><br><span class="line">JkWorkersFile conf/extra/workers.properties</span><br><span class="line"># Specify jk log file</span><br><span class="line">JkLogFile /app/test/apache2/logs/mod_jk.log</span><br><span class="line"># Specify jk log level [debug/error/info]</span><br><span class="line">JkLogLevel info</span><br><span class="line">#指定哪些请求交给tomcat处理,&quot;controller&quot;为在workers.properties里指定的负载分配控制器名</span><br><span class="line"></span><br><span class="line">JkMount /servlet/* controller</span><br><span class="line">JkMount /*.jsp controller</span><br><span class="line">JkMount /*.do controller</span><br><span class="line"></span><br><span class="line">// 在conf/httpd.conf最后加上</span><br><span class="line">Include conf/extra/httpd-vhosts.conf</span><br><span class="line">Include conf/extra/httpd-jk.conf</span><br></pre></td></tr></table></figure></p>
+<p>建立工作文件<code>workers.properties</code>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">[root@cachets crm]# vi apache2/conf/extra/workers.properties</span><br><span class="line"># servers</span><br><span class="line">worker.list=controller</span><br><span class="line"># ====== tomcat0 =======</span><br><span class="line">worker.tomcat0.port=8009</span><br><span class="line">worker.tomcat0.host=192.168.10.100</span><br><span class="line">worker.tomcat0.type=ajp13</span><br><span class="line">worker.tomcat0.lbfactor=1</span><br><span class="line"># ====== tomcat1 =======</span><br><span class="line">worker.tomcat1.port=8109</span><br><span class="line">worker.tomcat1.host=192.168.10.100</span><br><span class="line">worker.tomcat1.type=ajp13</span><br><span class="line">worker.tomcat1.lbfactor=1</span><br><span class="line"># ====== tomcat2 =======</span><br><span class="line">worker.tomcat2.port=8209</span><br><span class="line">worker.tomcat2.host=192.168.10.100</span><br><span class="line">worker.tomcat2.type=ajp13</span><br><span class="line">worker.tomcat2.lbfactor=1</span><br><span class="line"># ====== controller ====</span><br><span class="line">worker.controller.type=lb</span><br><span class="line">worker.controller.balance_workers=tomcat0,tomcat1,tomcat2</span><br><span class="line">worker.controller.sticky_session = 1</span><br></pre></td></tr></table></figure></p>
+<p>以上是3个tomcat的做负载均衡的情况，负载因子<code>lbfactor</code>都为1，session为sticky模式，apache与tomcat连接的协议采用AJP/1.3，同一台服务器上通过端口来区分tomcat0/tomcat1/tomcat2。</p>
+<h3 id="2-5-2-tomcat"><a href="#2-5-2-tomcat" class="headerlink" title="2.5.2 tomcat"></a>2.5.2 tomcat</h3><p>在<code>tomcat0/conf/server.xml</code>中加入<code>jvmRoute</code>属性，这个属性与上面的<code>workers.properties</code>的worker相同：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot; jvmRoute=&quot;tomcat0&quot;&gt;</span><br></pre></td></tr></table></figure></p>
+<p>设置测试应用的访问路径，在<code>tomcat0/conf/server.xml</code>的<code>&lt;Host&gt;</code>节点下添加如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;Context path=&quot;&quot; docBase=&quot;/apps/test/testapp/TEST&quot; reloadable=&quot;true&quot; /&gt;</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-5-3-app-TEST"><a href="#2-5-3-app-TEST" class="headerlink" title="2.5.3 app-TEST"></a>2.5.3 app-TEST</h3><p>为了看到负载均衡的效果，在<code>/apps/test/testapp/TEST</code>目录下建立测试页面test.jsp：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ page contentType=&quot;text/html; charset=UTF-8&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;java.util.*&quot; %&gt;</span><br><span class="line">&lt;html&gt;&lt;head&gt;&lt;title&gt;Cluster App Test&lt;/title&gt;&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">Server Info:</span><br><span class="line">&lt;%</span><br><span class="line">out.println(request.getLocalAddr() + &quot; : &quot; + request.getLocalPort()+&quot;&lt;br&gt;&quot;);%&gt;</span><br><span class="line">&lt;%</span><br><span class="line">  out.println(&quot;&lt;br&gt; ID &quot; + session.getId()+&quot;&lt;br&gt;&quot;);</span><br><span class="line">  // 如果有新的 Session 属性设置</span><br><span class="line">  String dataName = request.getParameter(&quot;dataName&quot;);</span><br><span class="line">  if (dataName != null &amp;&amp; dataName.length() &gt; 0) &#123;</span><br><span class="line">     String dataValue = request.getParameter(&quot;dataValue&quot;);</span><br><span class="line">     session.setAttribute(dataName, dataValue);</span><br><span class="line">  &#125;</span><br><span class="line">  out.println(&quot;&lt;b&gt;Session 列表&lt;/b&gt;&lt;br&gt;&quot;);</span><br><span class="line">  System.out.println(&quot;============================&quot;);</span><br><span class="line">  Enumeration e = session.getAttributeNames();</span><br><span class="line">  while (e.hasMoreElements()) &#123;</span><br><span class="line">     String name = (String)e.nextElement();</span><br><span class="line">     String value = session.getAttribute(name).toString();</span><br><span class="line">     out.println( name + &quot; = &quot; + value+&quot;&lt;br&gt;&quot;);</span><br><span class="line">         System.out.println( name + &quot; = &quot; + value);</span><br><span class="line">   &#125;</span><br><span class="line">%&gt;</span><br><span class="line">  &lt;form action=&quot;test.jsp&quot; method=&quot;POST&quot;&gt;</span><br><span class="line">    CRM &lt;br&gt;</span><br><span class="line">    名称:&lt;input type=text size=20 name=&quot;dataName&quot;&gt;</span><br><span class="line">     &lt;br&gt;</span><br><span class="line">    值:&lt;input type=text size=20 name=&quot;dataValue&quot;&gt;</span><br><span class="line">     &lt;br&gt;</span><br><span class="line">    &lt;input type=submit&gt;</span><br><span class="line">   &lt;/form&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure></p>
+<p>到这里还差一步就可以看到集群的效果，那就是3个tomcat之间session同步的问题。可以通过打开<code>&lt;Engine&gt;</code>节点下的<code>&lt;Cluster&gt;</code>标签的注释来简单的实现session复制：</p>
+<pre><code>&lt;Cluster className=&quot;org.apache.catalina.ha.tcp.SimpleTcpCluster&quot;/&gt;
+</code></pre><p>然后在<code>tomcat0/conf/web.xml</code>的<code>&lt;webapp&gt;</code>根节点下加入<code>&lt;distributable /&gt;</code></p>
+<p>复制tomcat0到tomcat1、tomcat2，修改<server> <connector>的端口避免冲突，修改对应的jvmRoute</connector></server></p>
+<p>启动apache和3个tomcat，就可以看到效果。但这里我们使用<code>memcached-session-manager</code>来同步session，所以不必打开<code>&lt;Cluster&gt;</code>这一步。</p>
+<h2 id="2-6-memcached-session-manager配置"><a href="#2-6-memcached-session-manager配置" class="headerlink" title="2.6 memcached-session-manager配置"></a>2.6 memcached-session-manager配置</h2><h3 id="2-6-1-安装memcached服务器"><a href="#2-6-1-安装memcached服务器" class="headerlink" title="2.6.1 安装memcached服务器"></a>2.6.1 安装memcached服务器</h3><p>这里memcached搭建在另外一台服务器上（192.168.10.20），也可以安装在本地。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@cachets msm]# yum install libevent libevent-devel</span><br><span class="line">[root@cachets msm]# tar -zxvf memcached-1.4.19.tar.gz</span><br><span class="line">[root@cachets msm]# cd memcached-1.4.19 &amp;&amp; ./configure &amp;&amp; make &amp;&amp; make install</span><br><span class="line"></span><br><span class="line">// 启动两个memcached节点，端口分别为11211、11212</span><br><span class="line">[root@cachets ~]#memcached -d -m 64 -p 11211 -u daemon -P /var/run/memcached.pid </span><br><span class="line">[root@cachets ~]#memcached -d -m 64 -p 11212 -u daemon -P /var/run/memcached2.pid</span><br></pre></td></tr></table></figure></p>
+<p>如果开启了防火墙，需要加入11211、11212端口的允许规则。</p>
+<h3 id="2-6-2-再次配置tomcat"><a href="#2-6-2-再次配置tomcat" class="headerlink" title="2.6.2 再次配置tomcat"></a>2.6.2 再次配置tomcat</h3><p>加入jar包</p>
+<p>将<code>asm-3.2.jar</code>, <code>couchbase-client-1.2.2.jar</code>, <code>kryo-1.04.jar</code>, <code>kryo-serializers-0.11.jar</code>, <code>msm-kryo-serializer-1.6.5.jar</code>, <code>memcached-session-manager-1.6.5.jar</code>, <code>memcached-session-manager-tc6-1.6.5.jar</code>, <code>minlog-1.2.jar</code>, <code>reflectasm-1.01.jar</code>, <code>spymemcached-2.10.2.jar</code>这些jar包加入tomcat0/lib/下。可以看到这里选用的session序列化策略采用的是kryo。另外要注意版本之间的兼容性，这里只针对tomcat6.x。<br>修改<code>conf/server.xml</code>：</p>
+<p>将<context>节点修改成：</context></p>
+<pre><code>&lt;Context path=&quot;&quot; docBase=&quot;/apps/test/testapp/TEST&quot; reloadable=&quot;true&quot; &gt;
+   &lt;Manager className=&quot;de.javakaffee.web.msm.MemcachedBackupSessionManager&quot;
+      memcachedNodes=&quot;n1:192.168.10.20:11211,n2:192.168.10.20:11212&quot;
+      failoverNodes=&quot;n1&quot;
+      sticky=&quot;true&quot;
+      requestUriIgnorePattern=&quot;.*\.(png|gif|jpg|css|js)$&quot;
+      sessionBackupAsync=&quot;false&quot;
+      sessionBackupTimeout=&quot;100&quot;
+      transcoderFactoryClass=&quot;de.javakaffee.web.msm.serializer.kryo.KryoTranscoderFactory&quot;
+      copyCollectionsForSerialization=&quot;false&quot; /&gt;
+&lt;/Context&gt;
+</code></pre><p>接着将tomcat0完整的复制2份（tomcat1，tomcat2），也可以放到另外一台服务器上。<br>修改为<code>workers.properties</code>中定义的AJP等端口：</p>
+<table>
+<thead>
+<tr>
+<th>node tomcat</th>
+<th>Server port</th>
+<th>Connector port http</th>
+<th>Connector port ajp</th>
+<th>Engine jvmRoute</th>
+<th>memcached failoverNodes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tomcat0</td>
+<td>8005</td>
+<td>8080</td>
+<td>8009</td>
+<td>tomcat0</td>
+<td>n1</td>
+</tr>
+<tr>
+<td>tomcat1</td>
+<td>8105</td>
+<td>8081</td>
+<td>8109</td>
+<td>tomcat1</td>
+<td>n1</td>
+</tr>
+<tr>
+<td>tomcat2</td>
+<td>8205</td>
+<td>8082</td>
+<td>8209</td>
+<td>tomcat2</td>
+<td>n2</td>
+</tr>
+</tbody>
+</table>
+<h1 id="3-测试"><a href="#3-测试" class="headerlink" title="3. 测试"></a>3. 测试</h1><p>分别启动tomcat0、tomcat1、tomcat2和apache，注意观察tomcat的启动日志和memcached服务器的日志。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[test@cachets ~]$ /apps/test/tomcat0/bin/startup.sh</span><br><span class="line">[test@cachets ~]$ /apps/test/tomcat1/bin/startup.sh</span><br><span class="line">[test@cachets ~]$ /apps/test/tomcat2/bin/startup.sh</span><br><span class="line">[root@cachets ~]# /apps/test/apache2/bin/apachectl start</span><br></pre></td></tr></table></figure></p>
+<p>在浏览器访问<code>http://192.168.10.100/test.jsp</code>。主要测试负载均衡与session共享。</p>
+<p><strong>参考</strong></p>
+<ul>
+<li><a href="https://people.apache.org/~mturk/docs/article/ftwai.html" target="_blank" rel="noopener">https://people.apache.org/~mturk/docs/article/ftwai.html</a></li>
+</ul>
+<hr>
+<p>原文链接地址：<a href="http://seanlook.com/2015/04/23/pfsense-usage/">http://seanlook.com/2015/04/23/pfsense-usage/</a></p>
+<hr>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/apache/" rel="tag"># apache</a>
+          
+            <a href="/tags/tomcat/" rel="tag"># tomcat</a>
+          
+            <a href="/tags/集群/" rel="tag"># 集群</a>
+          
+            <a href="/tags/mod-jk/" rel="tag"># mod_jk</a>
+          
+            <a href="/tags/memcached/" rel="tag"># memcached</a>
+          
+            <a href="/tags/centos/" rel="tag"># centos</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/10/28/vsphere-recover-from-missing-vmdk/" rel="next" title="误删vSphere虚拟机.vmdk文件的恢复">
+                <i class="fa fa-chevron-left"></i> 误删vSphere虚拟机.vmdk文件的恢复
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/10/29/multiple-tomcats-service-script/" rel="prev" title="管理多tomcat服务shell脚本（CentOS）">
+                管理多tomcat服务shell脚本（CentOS） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar_sean.jpg"
+                alt="seanlook" />
+            
+              <p class="site-author-name" itemprop="name">seanlook</p>
+              <p class="site-description motion-element" itemprop="description">Stay hungry, stay foolish.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">120</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">121</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/seanlook" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:seanlook7@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="http://weibo.com/zhouxiaozhxi" target="_blank" title="Weibo">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>Weibo</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-所需软件包"><span class="nav-text">1. 所需软件包</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-安装过程"><span class="nav-text">2. 安装过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-JDK"><span class="nav-text">2.1 JDK</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-编译安装apache"><span class="nav-text">2.2 编译安装apache</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-安装tomcat"><span class="nav-text">2.3 安装tomcat</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-安装jk"><span class="nav-text">2.4 安装jk</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-5-配置（集群）负载均衡选项"><span class="nav-text">2.5 配置（集群）负载均衡选项</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-1-apache"><span class="nav-text">2.5.1 apache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-2-tomcat"><span class="nav-text">2.5.2 tomcat</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-3-app-TEST"><span class="nav-text">2.5.3 app-TEST</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-6-memcached-session-manager配置"><span class="nav-text">2.6 memcached-session-manager配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-1-安装memcached服务器"><span class="nav-text">2.6.1 安装memcached服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-2-再次配置tomcat"><span class="nav-text">2.6.2 再次配置tomcat</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-测试"><span class="nav-text">3. 测试</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2014 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">seanlook</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+  <div style="display: none;">
+    <script src="//s95.cnzz.com/z_stat.php?id=1253513173&web_id=1253513173" language="JavaScript"></script>
+  </div>
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seanlookcom.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://seanlook.com/2014/10/29/apache-3tomcat-cluster-jk-memcached/';
+          this.page.identifier = '2014/10/29/apache-3tomcat-cluster-jk-memcached/';
+          this.page.title = 'apache+3tomcat+jk+memcached集群环境搭建';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://seanlookcom.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("NliJVBn0857TMk5HYrIRt5wp-gzGzoHsz", "jB9B4QG8Rm8YP04RQqnsKy5M");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

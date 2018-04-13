@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.lug.ustc.edu.cn/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="mysql,中间件,proxysql," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Sean's Notes" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="MySQL的高可用方案现在如 MHA, Galera, InnoDB Cluster，一旦在上游使用中间件之后，中间件本身可能成为单点。所以本文要介绍的是对于ProxySQL自身高可用的方案对比。首先ProxySQL自身是通过Angel进程的形式运行，即proxysql如果有崩溃，主进程会自动拉起来。但如果是无响应或者网络故障，则需要另外的机制去做到服务的高可用。本文总结了四种方法。 ProxyS">
+<meta name="keywords" content="mysql,中间件,proxysql">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ProxySQL高可用方案">
+<meta property="og:url" content="http://seanlook.com/2017/07/15/mysql-proxysql-ha-consul/index.html">
+<meta property="og:site_name" content="Sean&#39;s Notes">
+<meta property="og:description" content="MySQL的高可用方案现在如 MHA, Galera, InnoDB Cluster，一旦在上游使用中间件之后，中间件本身可能成为单点。所以本文要介绍的是对于ProxySQL自身高可用的方案对比。首先ProxySQL自身是通过Angel进程的形式运行，即proxysql如果有崩溃，主进程会自动拉起来。但如果是无响应或者网络故障，则需要另外的机制去做到服务的高可用。本文总结了四种方法。 ProxyS">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-1.png">
+<meta property="og:image" content="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-2.png">
+<meta property="og:image" content="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-1-1.png">
+<meta property="og:image" content="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-3.png">
+<meta property="og:image" content="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-4.png">
+<meta property="og:image" content="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-consul.png">
+<meta property="og:updated_time" content="2017-07-18T13:32:49.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ProxySQL高可用方案">
+<meta name="twitter:description" content="MySQL的高可用方案现在如 MHA, Galera, InnoDB Cluster，一旦在上游使用中间件之后，中间件本身可能成为单点。所以本文要介绍的是对于ProxySQL自身高可用的方案对比。首先ProxySQL自身是通过Angel进程的形式运行，即proxysql如果有崩溃，主进程会自动拉起来。但如果是无响应或者网络故障，则需要另外的机制去做到服务的高可用。本文总结了四种方法。 ProxyS">
+<meta name="twitter:image" content="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: 'WNWHBKUL26',
+      apiKey: 'cec5cc7d455c77d448433aa60f989766',
+      indexName: 'seanlook',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://seanlook.com/2017/07/15/mysql-proxysql-ha-consul/"/>
+
+
+
+
+
+  <title>ProxySQL高可用方案 | Sean's Notes</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?62e026415456b0339db6d3912577a9fa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Sean's Notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Stay hungry, stay foolish.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://seanlook.com/2017/07/15/mysql-proxysql-ha-consul/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="seanlook">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar_sean.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Sean's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ProxySQL高可用方案</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-15T21:32:49+08:00">
+                2017-07-15
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2017-07-18T21:32:49+08:00">
+                2017-07-18
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index">
+                    <span itemprop="name">MySQL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/07/15/mysql-proxysql-ha-consul/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2017/07/15/mysql-proxysql-ha-consul/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/07/15/mysql-proxysql-ha-consul/" class="leancloud_visitors" data-flag-title="ProxySQL高可用方案">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>MySQL的高可用方案现在如 MHA, Galera, InnoDB Cluster，一旦在上游使用中间件之后，中间件本身可能成为单点。所以本文要介绍的是对于ProxySQL自身高可用的方案对比。<br>首先ProxySQL自身是通过Angel进程的形式运行，即proxysql如果有崩溃，主进程会自动拉起来。但如果是无响应或者网络故障，则需要另外的机制去做到服务的高可用。本文总结了四种方法。</p>
+<p>ProxySQL有关介绍，请参考： <a href="http://seanlook.com/2017/04/10/mysql-proxysql-install-config/">http://seanlook.com/2017/04/10/mysql-proxysql-install-config/</a></p>
+<h1 id="1-与应用一起部署"><a href="#1-与应用一起部署" class="headerlink" title="1. 与应用一起部署"></a>1. 与应用一起部署</h1><p>所有部署应用的地方，都会部署proxysql节点，当这个proxysql挂掉之后，只影响本机的应用。而且不需要多经过一层网络。<br><img src="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-1.png" alt=""><br>但带来的问题是，如果应用节点很多，proxy的数量也会增加：</p>
+<ul>
+<li>会导致proxysql的配置不容易管理</li>
+<li>proxysql对后端db健康检查的请求成倍增加</li>
+<li>限制每个用户或后端db的 max_connections 特性用不了</li>
+</ul>
+<h1 id="2-集中式部署，多ip引用"><a href="#2-集中式部署，多ip引用" class="headerlink" title="2. 集中式部署，多ip引用"></a>2. 集中式部署，多ip引用</h1><p>后端一个db集群，对应中间两个以上的 proxysql 节点，前端应用配置多个ip地址，随机挑选一个使用，完全无状态。仅需要多经过一次网络代理。<br><img src="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-2.png" alt=""><br>这种方式的好处是，不需要再对数据库这种基础服务，多引入一个软件来实现高可用（如下节的keepalive或consul），由应用端获取数据库连接的代码逻辑处理。</p>
+<p>但是因为proxysql访问地址是写在配置文件里面的，如果一个节点挂掉，随机挑选还是会落地这个失败的节点。所以优化方案是，ip列表里面默认取某一个，失败之后再选取下一个重试。</p>
+<p>示例代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">proxysql_addr_list = [<span class="string">'192.168.1.175'</span>, <span class="string">'192.168.1.176'</span>, <span class="string">'192.168.1.177'</span>]</span><br><span class="line">proxysql_addr_list_len = <span class="number">3</span></span><br><span class="line">hostname = <span class="string">'this_hostname_for_hash_loadbalance'</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_dbconnection</span><span class="params">()</span>:</span></span><br><span class="line">    list_index = hash(hostname) % proxysql_addr_list_len</span><br><span class="line">    dbconn = <span class="keyword">None</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        dbconn = DBConnect(dbhost=proxysql_addr_list[ list_index ], dbport=<span class="number">3306</span>)  <span class="comment"># timeout 1000ms</span></span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="keyword">if</span> (list_index + <span class="number">1</span>) == proxysql_addr_list_len:</span><br><span class="line">            list_index = <span class="number">-1</span>  <span class="comment"># like Circular Array</span></span><br><span class="line">        dbconn = DBConnec(dbhost=proxysql_addr_list[ list_index + <span class="number">1</span> ], dbport=<span class="number">3306</span>)  <span class="comment"># if failed again, through exception</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> dbconn</span><br></pre></td></tr></table></figure>
+<p>上述并不完美，比如可以改用环形数组轮巡，允许重试其它更多的ip。<br><a id="more"></a></p>
+<h2 id="能不能不进行多IP引用呢？"><a href="#能不能不进行多IP引用呢？" class="headerlink" title="能不能不进行多IP引用呢？"></a>能不能不进行多IP引用呢？</h2><p>为了避免后端引用IP的单点，可以将上面第1种和这里的第2中结合起来，改进的部署方案：（见文后参考链接）<br><img src="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-1-1.png" alt=""><br>即在原来的基础上，App上的proxysql后端，挂的还是ProxySQL集群。</p>
+<p>我个人没有验证这样的方案，如果要用需要充分验证proxysql互连的时候，有没有bug。</p>
+<h1 id="3-经典-keepalived"><a href="#3-经典-keepalived" class="headerlink" title="3. 经典 keepalived"></a>3. 经典 keepalived</h1><p>引入keepalived，通过VIP访问两个以上的proxysql节点，既可以减少一次网络传输，又可以实现proxysql自身的高可用，而且甚至不用关心脑裂的问题，因为proxysql配置完全一样，是无状态的，脑裂了也无妨。<br>你也可能意识到，这种方式一次只能一个proxysql提供服务，另一个proxysql节点始终处于备用状态。如果配合LVS或haproxy做负载均衡，部署架构又会多出一层网络请求，而且越发复杂（VIP不在proxysql节点上漂，而是在两个lvs之间）。<br><img src="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-3.png" alt=""><br>使用keepalived的前提是，局域网允许发组播包。这在阿里云ECS经典网络下是不允许的，如果有其它类似方式，如SLB也是可行的。目前测试环境采用是 haproxy + keepalived 的方式。</p>
+<h1 id="4-Consul服务发现"><a href="#4-Consul服务发现" class="headerlink" title="4. Consul服务发现"></a>4. Consul服务发现</h1><p>如果上面的方式都不适用，那么可以进一步考虑使用第三方的服务发现组件。</p>
+<h2 id="4-1-介绍"><a href="#4-1-介绍" class="headerlink" title="4.1 介绍"></a>4.1 介绍</h2><p>Consul用于实现分布式系统的服务发现与配置，我们将所有proxysql节点注册到consul上作为一个服务来提供，由 Consul agent Server 来判断proxysql节点的存活，每个应用节点上都安装 Consul agent Client 来供应用获取可用地址。</p>
+<p><img src="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-4.png" alt=""></p>
+<p>这样部署架构的好处是：</p>
+<ol>
+<li>不需要多一层负载均衡，多一层网络链路</li>
+<li>不需要部署大量的proxysql节点</li>
+<li>App或者ProxySQL节点上的Consul故障，不影响其它节点。Consul Server集群的天生具备高可用</li>
+<li>ProxySQL故障会被Consul检查到，踢除故障节点，并通知给所有consul agent</li>
+<li>可以利用Consul的DNS接口实现简单的负载均衡</li>
+</ol>
+<p>其实consul所做的与本文第2节的类似：自动提出不可用的节点，只是一个是被动、手动，一个是主动、自动。<br>下面简单演示一下。</p>
+<h2 id="4-2-部署示例"><a href="#4-2-部署示例" class="headerlink" title="4.2 部署示例"></a>4.2 部署示例</h2><p>Consul Server节点的安装在此略过，网上有不少文章，直接进入到在ProxySQL节点安装配置Consul。</p>
+<p>Consul agent:</p>
+<ul>
+<li>apps-1: <code>10.0.201.168</code></li>
+<li>apps-2: <code>10.0.201.220</code></li>
+<li>apps-3: <code>10.0.201.156</code></li>
+</ul>
+<p>ProxySQL node:<br>每个节点上运行了两个proxysql进程 <code>7033: crm0</code>, <code>7133: crm1</code></p>
+<ul>
+<li>proxysql-1 : <code>192.168.1.170</code></li>
+<li>proxysql-2 : <code>192.168.1.171</code></li>
+</ul>
+<h3 id="配置-proxysql-节点上的Consul"><a href="#配置-proxysql-节点上的Consul" class="headerlink" title="配置 proxysql 节点上的Consul"></a>配置 proxysql 节点上的Consul</h3><p>配置 proxysql-1 节点上的Consul：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vim /etc/consul.d/config.json</span><br><span class="line">&#123;</span><br><span class="line">    &quot;data_dir&quot;: &quot;/opt/consul&quot;, </span><br><span class="line">    &quot;datacenter&quot;: &quot;Office_test&quot;, </span><br><span class="line">    &quot;log_level&quot;: &quot;INFO&quot;, </span><br><span class="line">    &quot;node_name&quot;: &quot;proxysql-1&quot;, </span><br><span class="line">    &quot;retry_join&quot;: [</span><br><span class="line">        &quot;10.0.201.168&quot;, </span><br><span class="line">        &quot;10.0.201.220&quot;, </span><br><span class="line">        &quot;10.0.201.156&quot;</span><br><span class="line">    ], </span><br><span class="line">    &quot;telemetry&quot;: &#123;</span><br><span class="line">        &quot;statsd_address&quot;: &quot;10.0.201.34:8125&quot;, </span><br><span class="line">        &quot;statsite_prefix&quot;: &quot;proxysql-1&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;dns_config&quot;: &#123;</span><br><span class="line">        &quot;only_passing&quot;: true</span><br><span class="line">    &#125;</span><br><span class="line">    &quot;acl_datacenter&quot;: &quot;Office_test&quot;, </span><br><span class="line">    &quot;acl_default_policy&quot;: &quot;deny&quot;, </span><br><span class="line">    &quot;encrypt&quot;: &quot;XXXXxxxx==&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$ sudo vi /etc/consul.d/proxysql.json</span><br><span class="line">&#123;&quot;services&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">        &quot;id&quot;: &quot;proxysql_crm0&quot;, </span><br><span class="line">        &quot;name&quot;: &quot;proxysql&quot;, </span><br><span class="line">        &quot;address&quot;: &quot;192.168.1.170&quot;,</span><br><span class="line">        &quot;port&quot;: 7133, </span><br><span class="line">        &quot;tags&quot;: [&quot;test&quot;, &quot;crm0&quot;], </span><br><span class="line">        &quot;check&quot;: &#123;</span><br><span class="line">            &quot;interval&quot;: &quot;5s&quot;, </span><br><span class="line">            &quot;tcp&quot;: &quot;192.168.1.170:7033&quot;, </span><br><span class="line">            &quot;timeout&quot;: &quot;1s&quot;</span><br><span class="line">        &#125;, </span><br><span class="line">        &quot;enableTagOverride&quot;: false, </span><br><span class="line">        &quot;token&quot;: &quot;xxxxxxxx-xxxx&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        &quot;id&quot;: &quot;proxysql_crm1&quot;, </span><br><span class="line">        &quot;address&quot;: &quot;192.168.1.170&quot;,</span><br><span class="line">        &quot;name&quot;: &quot;proxysql&quot;, </span><br><span class="line">        &quot;port&quot;: 7133, </span><br><span class="line">        &quot;tags&quot;: [&quot;test&quot;, &quot;crm1&quot;], </span><br><span class="line">        &quot;check&quot;: &#123;</span><br><span class="line">            &quot;interval&quot;: &quot;5s&quot;, </span><br><span class="line">            &quot;tcp&quot;: &quot;192.168.1.170:7133&quot;, </span><br><span class="line">            &quot;timeout&quot;: &quot;1s&quot;</span><br><span class="line">        &#125;, </span><br><span class="line">        &quot;enableTagOverride&quot;: false, </span><br><span class="line">        &quot;token&quot;: &quot;xxxxxxxx-xxxx&quot;</span><br><span class="line">    &#125;</span><br><span class="line">]&#125;</span><br></pre></td></tr></table></figure></p>
+<p>启动consul<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo consul agent -config-dir /etc/consul &amp;</span><br></pre></td></tr></table></figure></p>
+<p>查看日志</p>
+<p>proxysql-2 节点上的Consul配置根据上面的内容去改。</p>
+<p><img src="http://7q5fot.com1.z0.glb.clouddn.com/proxysql-ha-consul.png" alt=""></p>
+<h2 id="4-4-使用方式"><a href="#4-4-使用方式" class="headerlink" title="4.4 使用方式"></a>4.4 使用方式</h2><p>先来看下效果：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">[root@proxysql-1 ~]# dig @127.0.0.1 -p 8600 crm0.proxysql.service.consul SRV</span><br><span class="line"></span><br><span class="line">; &lt;&lt;&gt;&gt; DiG 9.8.2rc1-RedHat-9.8.2-0.62.rc1.el6_9.2 &lt;&lt;&gt;&gt; @127.0.0.1 -p 8600 crm0.proxysql.service.consul SRV</span><br><span class="line">; (1 server found)</span><br><span class="line">;; global options: +cmd</span><br><span class="line">;; Got answer:</span><br><span class="line">;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 65293</span><br><span class="line">;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 2</span><br><span class="line">;; WARNING: recursion requested but not available</span><br><span class="line"></span><br><span class="line">;; QUESTION SECTION:</span><br><span class="line">;crm0.proxysql.service.consul.	IN	SRV</span><br><span class="line"></span><br><span class="line">;; ANSWER SECTION:</span><br><span class="line">crm0.proxysql.service.consul. 0	IN	SRV	1 1 7033 proxysql-1.node.office_test.consul.</span><br><span class="line">crm0.proxysql.service.consul. 0	IN	SRV	1 1 7033 proxysql-2.node.office_test.consul.</span><br><span class="line"></span><br><span class="line">;; ADDITIONAL SECTION:</span><br><span class="line">proxysql-1.node.office_test.consul. 0 IN A	192.168.1.170</span><br><span class="line">proxysql-2.node.office_test.consul. 0 IN A	192.168.1.171</span><br><span class="line"></span><br><span class="line">;; Query time: 3 msec</span><br><span class="line">;; SERVER: 127.0.0.1#8600(127.0.0.1)</span><br><span class="line">;; WHEN: Fri May 26 17:01:38 2017</span><br><span class="line">;; MSG SIZE  rcvd: 157</span><br></pre></td></tr></table></figure></p>
+<p>看到域名 <code>crm0.proxysql.service.consul</code> 解析出来有两个可用地址 192.168.1.170，192.168.1.171，SRV记录还带出了端口信息（其实这里的端口对每个proxysql是固定/已知的，所以可不用SRV记录搜索）。</p>
+<p>在应用端想要连接proxysql使用的方式大致有3种：</p>
+<h3 id="DNS接口"><a href="#DNS接口" class="headerlink" title="DNS接口"></a>DNS接口</h3><p>需要将各自开发语言的DNS解析库嵌入到项目，指定 127.0.0.1:8600 为dns地址来解析上面的 crm0.proxysql.service.consul 域名。这种方式会增加开发的复杂度。</p>
+<p>另一种方式是将应用服务器的默认DNS Server配置成本地consul的内置dns地址，并且consul设置 <code>recursors</code> 选项，来处理解析 consul. 以外的域名。这样对运维改动比较大。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&quot;recursors&quot;: [</span><br><span class="line">    &quot;10.143.22.116&quot;,</span><br><span class="line">    &quot;10.143.22.118&quot;,</span><br><span class="line">    &quot;114.114.114.114&quot;</span><br><span class="line">]</span><br></pre></td></tr></table></figure></p>
+<h3 id="HTTP接口"><a href="#HTTP接口" class="headerlink" title="HTTP接口"></a>HTTP接口</h3><p>通过 API 的方式获取services信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl -X GET &apos;http://10.0.201.156:8500/v1/health/service/proxysql?tag=crm1&amp;passing=true&apos;</span><br></pre></td></tr></table></figure>
+<p>可以获取到 crm1 库的proxysql所有健康的 Node 和 Service 信息，然后任取一个使用。</p>
+<p>但并不需要每一次访问proxysql都需要请求api，可以定时（如每隔10s）去请求，缓冲在本地或者变量里；在处理数据库连接的时候发现连接ProxySQL错误，则再主动触发一次向Consul请求新的地址，再重连。</p>
+<p>需要考虑的是访问API的地址如果是IP，往往也是单点。另者，java这类jvm语言修改配置后往往需要重启，也不简单。</p>
+<h3 id="consul-template直接生成数据库连接的配置文件"><a href="#consul-template直接生成数据库连接的配置文件" class="headerlink" title="consul-template直接生成数据库连接的配置文件"></a>consul-template直接生成数据库连接的配置文件</h3><p>consul-template通过事先定义好的模板，根据发现服务的健康状态，生成最新可用的配置文件，然后下发。</p>
+<p>如果大但的想一下，各个服务或者语言的配置文件并不相同，直接生成一份 hosts 文件是最简单的，然后通过配置管理工具统一下发应用。也不需要关心是否需要重启应用。</p>
+<h4 id="consul-watch"><a href="#consul-watch" class="headerlink" title="consul watch"></a>consul watch</h4><p>Consul watch 功能，可以检测到service变化之后，主动调用一个脚本，脚本可以去更新数据库配置信息，根据需要决定是否重启，后者生成hosts。与consul-template思想是相同的。</p>
+<p>因为 watch 是通过阻塞式HTTP长连接请求的方式，实时获取到service的监控状态，所以有问题时反馈还比较及时。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&quot;watches&quot;:[&#123;</span><br><span class="line">  &quot;type&quot;: &quot;service&quot;,</span><br><span class="line">  &quot;service&quot;: &quot;proxysql&quot;,</span><br><span class="line">  &quot;tag&quot;: &quot;crm0&quot;,</span><br><span class="line">  &quot;passingonly&quot;: true,</span><br><span class="line">  &quot;handler&quot;: &quot;sh /tmp/consul_watch_test.sh&quot;</span><br><span class="line">&#125;]</span><br></pre></td></tr></table></figure></p>
+<p><code>/tmp/consul_watch_test.sh</code> 脚本里或者python，可以做一些更新数据库配置文件、发送邮件等工作。</p>
+<p><strong>参考</strong></p>
+<ol>
+<li><a href="https://www.percona.com/blog/2016/09/16/consul-proxysql-mysql-ha/" target="_blank" rel="noopener">https://www.percona.com/blog/2016/09/16/consul-proxysql-mysql-ha/</a></li>
+<li><a href="https://www.percona.com/blog/2017/01/19/setup-proxysql-for-high-availability-not-single-point-failure/" target="_blank" rel="noopener">https://www.percona.com/blog/2017/01/19/setup-proxysql-for-high-availability-not-single-point-failure/</a></li>
+<li><a href="https://www.slideshare.net/DerekDowney/proxysql-tutorial-plam-2016" target="_blank" rel="noopener">https://www.slideshare.net/DerekDowney/proxysql-tutorial-plam-2016</a> (本文部分图片出自该PPT)</li>
+</ol>
+<hr>
+<p>原文连接地址：<a href="http://seanlook.com/2017/07/15/mysql-proxysql-ha-consul/">http://seanlook.com/2017/07/15/mysql-proxysql-ha-consul/</a></p>
+<hr>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mysql/" rel="tag"># mysql</a>
+          
+            <a href="/tags/中间件/" rel="tag"># 中间件</a>
+          
+            <a href="/tags/proxysql/" rel="tag"># proxysql</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/04/27/mysql-proxysql-patch-querytext-sample/" rel="next" title="ProxySQL之改进patch：记录查询sql完整样例与合并digest多个?">
+                <i class="fa fa-chevron-left"></i> ProxySQL之改进patch：记录查询sql完整样例与合并digest多个?
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/16/mysql-proxysql-monitor/" rel="prev" title="ProxySQL监控方案">
+                ProxySQL监控方案 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar_sean.jpg"
+                alt="seanlook" />
+            
+              <p class="site-author-name" itemprop="name">seanlook</p>
+              <p class="site-description motion-element" itemprop="description">Stay hungry, stay foolish.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">120</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">121</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/seanlook" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:seanlook7@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="http://weibo.com/zhouxiaozhxi" target="_blank" title="Weibo">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>Weibo</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-与应用一起部署"><span class="nav-text">1. 与应用一起部署</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-集中式部署，多ip引用"><span class="nav-text">2. 集中式部署，多ip引用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#能不能不进行多IP引用呢？"><span class="nav-text">能不能不进行多IP引用呢？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-经典-keepalived"><span class="nav-text">3. 经典 keepalived</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-Consul服务发现"><span class="nav-text">4. Consul服务发现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-介绍"><span class="nav-text">4.1 介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-部署示例"><span class="nav-text">4.2 部署示例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置-proxysql-节点上的Consul"><span class="nav-text">配置 proxysql 节点上的Consul</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-使用方式"><span class="nav-text">4.4 使用方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS接口"><span class="nav-text">DNS接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP接口"><span class="nav-text">HTTP接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#consul-template直接生成数据库连接的配置文件"><span class="nav-text">consul-template直接生成数据库连接的配置文件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#consul-watch"><span class="nav-text">consul watch</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2014 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">seanlook</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+  <div style="display: none;">
+    <script src="//s95.cnzz.com/z_stat.php?id=1253513173&web_id=1253513173" language="JavaScript"></script>
+  </div>
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seanlookcom.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://seanlook.com/2017/07/15/mysql-proxysql-ha-consul/';
+          this.page.identifier = '2017/07/15/mysql-proxysql-ha-consul/';
+          this.page.title = 'ProxySQL高可用方案';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://seanlookcom.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("NliJVBn0857TMk5HYrIRt5wp-gzGzoHsz", "jB9B4QG8Rm8YP04RQqnsKy5M");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

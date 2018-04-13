@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.lug.ustc.edu.cn/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="centos,docker,docker-registry,nginx,ssl," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Sean's Notes" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="主要思路： 1. Docker Registry 说明关于如何创建和使用本地仓库，其实已经有很多文章介绍了。因为docker技术正处于发展和完善阶段，所以有些文章要么内容已经过时，要么给出了错误的配置，导致无法正常创建仓库。本文记录的是个人完整的搭建过程，docker version为1.1.2。 官方提供了Docker Hub网站来作为一个公开的集中仓库。然而，本地访问Docker Hub速度往">
+<meta name="keywords" content="centos,docker,docker-registry,nginx,ssl">
+<meta property="og:type" content="article">
+<meta property="og:title" content="搭建docker内网私服（docker-registry with nginx&amp;ssl on centos）">
+<meta property="og:url" content="http://seanlook.com/2014/11/13/deploy-private-docker-registry-with-nginx-ssl/index.html">
+<meta property="og:site_name" content="Sean&#39;s Notes">
+<meta property="og:description" content="主要思路： 1. Docker Registry 说明关于如何创建和使用本地仓库，其实已经有很多文章介绍了。因为docker技术正处于发展和完善阶段，所以有些文章要么内容已经过时，要么给出了错误的配置，导致无法正常创建仓库。本文记录的是个人完整的搭建过程，docker version为1.1.2。 官方提供了Docker Hub网站来作为一个公开的集中仓库。然而，本地访问Docker Hub速度往">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://sean-images.qiniudn.com/docker-registry-deploy.png">
+<meta property="og:updated_time" content="2014-12-25T07:46:23.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="搭建docker内网私服（docker-registry with nginx&amp;ssl on centos）">
+<meta name="twitter:description" content="主要思路： 1. Docker Registry 说明关于如何创建和使用本地仓库，其实已经有很多文章介绍了。因为docker技术正处于发展和完善阶段，所以有些文章要么内容已经过时，要么给出了错误的配置，导致无法正常创建仓库。本文记录的是个人完整的搭建过程，docker version为1.1.2。 官方提供了Docker Hub网站来作为一个公开的集中仓库。然而，本地访问Docker Hub速度往">
+<meta name="twitter:image" content="http://sean-images.qiniudn.com/docker-registry-deploy.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: 'WNWHBKUL26',
+      apiKey: 'cec5cc7d455c77d448433aa60f989766',
+      indexName: 'seanlook',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://seanlook.com/2014/11/13/deploy-private-docker-registry-with-nginx-ssl/"/>
+
+
+
+
+
+  <title>搭建docker内网私服（docker-registry with nginx&ssl on centos） | Sean's Notes</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?62e026415456b0339db6d3912577a9fa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Sean's Notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Stay hungry, stay foolish.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://seanlook.com/2014/11/13/deploy-private-docker-registry-with-nginx-ssl/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="seanlook">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar_sean.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Sean's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">搭建docker内网私服（docker-registry with nginx&ssl on centos）</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-11-13T20:21:25+08:00">
+                2014-11-13
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2014-12-25T15:46:23+08:00">
+                2014-12-25
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Virtualization/" itemprop="url" rel="index">
+                    <span itemprop="name">Virtualization</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Virtualization/Docker/" itemprop="url" rel="index">
+                    <span itemprop="name">Docker</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2014/11/13/deploy-private-docker-registry-with-nginx-ssl/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2014/11/13/deploy-private-docker-registry-with-nginx-ssl/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2014/11/13/deploy-private-docker-registry-with-nginx-ssl/" class="leancloud_visitors" data-flag-title="搭建docker内网私服（docker-registry with nginx&ssl on centos）">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>主要思路：<br><img src="http://sean-images.qiniudn.com/docker-registry-deploy.png" alt="docker-registry-deploy"></p>
+<h2 id="1-Docker-Registry-说明"><a href="#1-Docker-Registry-说明" class="headerlink" title="1. Docker Registry 说明"></a>1. Docker Registry 说明</h2><p>关于如何创建和使用本地仓库，其实已经有很多文章介绍了。因为docker技术正处于发展和完善阶段，所以有些文章要么内容已经过时，要么给出了错误的配置，导致无法正常创建仓库。本文记录的是个人完整的搭建过程，<code>docker version</code>为1.1.2。</p>
+<p>官方提供了<a href="https://registry.hub.docker.com/" target="_blank" rel="noopener">Docker Hub</a>网站来作为一个公开的集中仓库。然而，本地访问Docker Hub速度往往很慢，并且很多时候我们需要一个本地的私有仓库只供网内使用。</p>
+<p>Docker仓库实际上提供两方面的功能，一个是镜像管理，一个是认证。前者主要由<a href="https://github.com/docker/docker-registry" target="_blank" rel="noopener">docker-registry</a>项目来实现，通过http服务来上传下载；后者可以通过docker-index（闭源）项目或者利用现成认证方案（如nginx）实现http请求管理。</p>
+<p>docker-registry既然也是软件应用，自然最简单的方法就是使用官方提供的已经部署好的镜像registry。官方文档中也给出了建议，直接运行<code>sudo docker run -p 5000:5000 registry</code>命令。这样确实能启动一个registry服务器，但是所有上传的镜像其实都是由docker容器管理，放在了/var/lib/docker/….某个目录下。而且一旦删除容器，镜像也会被删除。因此，我们需要想办法告诉docker容器镜像应该存放在哪里。registry镜像中启动后镜像默认位置是<code>/tmp/registry</code>，因此直接映射这个位置即可，比如到本机的<code>/opt/data/registry</code>目录下。</p>
+<a id="more"></a>
+<h2 id="2-在CentOS上搭建docker私服"><a href="#2-在CentOS上搭建docker私服" class="headerlink" title="2. 在CentOS上搭建docker私服"></a>2. 在CentOS上搭建docker私服</h2><h3 id="2-1-安装docker-registry"><a href="#2-1-安装docker-registry" class="headerlink" title="2.1 安装docker-registry"></a>2.1 安装<code>docker-registry</code></h3><p>方法有多种，直接运行下面的命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># docker run -d -e SETTINGS_FLAVOR=dev -e STORAGE_PATH=/tmp/registry -v /opt/data/registry:/tmp/registry  -p 5000:5000 registry</span><br></pre></td></tr></table></figure></p>
+<p>如果本地没有拉取过docker-registry，则首次运行会pull registry，运行时会映射路径和端口，以后就可以从<code>/opt/data/registry</code>下找到私有仓库都存在哪些镜像，通过主机的哪个端口可以访问。<br>你也可以把项目 <a href="https://github.com/docker/docker-registry.git" target="_blank" rel="noopener">https://github.com/docker/docker-registry.git</a> 克隆到本地，然后使用Dockerfile来build镜像：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># git clone https://github.com/docker/docker-registry.git</span><br><span class="line"># cd docker-registry &amp;&amp; mkdir -p /opt/data/registry</span><br><span class="line"># docker build -t &quot;local-sean&quot; .</span><br><span class="line"></span><br><span class="line">build完成后，就可以运行这个docker-registry</span><br><span class="line">我们先配置自己的config.yml文件，第一种方法是直接在run的时候指定变量</span><br><span class="line"># cp config/config_sample.yml /opt/data/registry/config.yml</span><br><span class="line"># vi /opt/data/registry/config.yml</span><br><span class="line">##这里可以设置本地存储SETTINGS_FLAVOR=dev，local STORAGE_PATH:/tmp/registry等待</span><br><span class="line"></span><br><span class="line"># docker run -d -v /opt/data/registry:/tmp/registry -p 5000:5000 -e  DOCKER_REGISTRY_CONFIG=/tmp/registry/config.yml registry</span><br><span class="line">或</span><br><span class="line">docker run -d -e SETTINGS_FLAVOR=dev -e STORAGE_PATH=/tmp/registry -v /db/docker-images:/tmp/registry -p 5000:5000 registry</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-2-客户端使用"><a href="#2-2-客户端使用" class="headerlink" title="2.2 客户端使用"></a>2.2 客户端使用</h3><p>要从私服上获取镜像或向私服提交镜像，现在变得非常简单，只需要在仓库前面加上私服的地址和端口，形如<code>172.29.88.222:5000/centos6</code>。注意，这里可以选择不使用IP，而是用hostname，如registry.domain.com:5000，但不能仅用不带<code>.</code>的主机名registry，docker会认为registry是用户名，建议使用带域名的hostname加port来表示。</p>
+<p>于是在另外一台要使用docker的主机上就可以通过这台私服拉取和推送镜像了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">从私服上搜索存在哪些可用镜像</span><br><span class="line"># curl -X GET http://sean.domain.com:5000/v1/search</span><br><span class="line">&#123;&quot;num_results&quot;: 2, &quot;query&quot;: &quot;&quot;, &quot;results&quot;: [&#123;&quot;description&quot;: &quot;&quot;, &quot;name&quot;: &quot;library/centos6&quot;&#125;, &#123;&quot;description&quot;: &quot;&quot;, &quot;name&quot;: &quot;library/nginx&quot;&#125;]&#125;</span><br><span class="line"></span><br><span class="line">按条件搜索nginx</span><br><span class="line"># curl -X GET http://sean.domain.com:5000/v1/search?q=centos6</span><br><span class="line"></span><br><span class="line">拉取image到本地</span><br><span class="line">docker pull library/centos6</span><br><span class="line"></span><br><span class="line">## 本地对份镜像启动起来，形成container</span><br><span class="line">## 给container去另外一个名字</span><br><span class="line"># docker tag 68edf809afe7 registry.domain.com:5000/centos6-test</span><br><span class="line"></span><br><span class="line">## 最后将新的docker images推送到私服上</span><br><span class="line">docker push registry.domain.com:5000/centos6-test</span><br></pre></td></tr></table></figure>
+<p>第一次push到私服上时会提示用户名、密码和邮箱，创建即可。也可以在docker私服端加入认证机制。</p>
+<h2 id="3-加入nginx认证"><a href="#3-加入nginx认证" class="headerlink" title="3. 加入nginx认证"></a>3. 加入nginx认证</h2><p>（请在实际操作以前，先阅读完本节，再确定是否在前端加入nginx）</p>
+<h3 id="3-1-安装及配置nginx"><a href="#3-1-安装及配置nginx" class="headerlink" title="3.1 安装及配置nginx"></a>3.1 安装及配置nginx</h3><p>从上面的过程可以看到，除非防火墙限制，否则任何主机可以创建账号并想私服推送镜像，更安全的做法是在外层加入登录认证机制。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">最好安装1.4.x版本，不然下面的有些配置可能会不兼容</span><br><span class="line"># yum install nginx</span><br><span class="line"></span><br><span class="line">创建两个登录用户</span><br><span class="line"># htpasswd -c /etc/nginx/docker-registry.htpasswd sean</span><br><span class="line">New password: </span><br><span class="line">Re-type new password: </span><br><span class="line">Adding password for user sean</span><br><span class="line"></span><br><span class="line"># htpasswd /etc/nginx/docker-registry.htpasswd itsection</span><br></pre></td></tr></table></figure></p>
+<p>为了让nginx使用这个密码文件，并且转发8080端口的请求到Docker Registry，新增nginx配置文件<br><code>vi /etc/nginx/sites-enabled/docker-registry</code>：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"># For versions of Nginx &gt; 1.3.9 that include chunked transfer encoding support</span><br><span class="line"># Replace with appropriate values where necessary</span><br><span class="line"></span><br><span class="line">upstream docker-registry &#123;</span><br><span class="line"> server localhost:5000;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line"> listen 8080;</span><br><span class="line"> server_name sean.domain.com;  -- your registry server_name</span><br><span class="line"></span><br><span class="line"> # ssl on;</span><br><span class="line"> # ssl_certificate /etc/ssl/certs/docker-registry;</span><br><span class="line"> # ssl_certificate_key /etc/ssl/private/docker-registry;</span><br><span class="line"></span><br><span class="line"> proxy_set_header Host       $http_host;   # required for Docker client sake</span><br><span class="line"> proxy_set_header X-Real-IP  $remote_addr; # pass on real client IP</span><br><span class="line"></span><br><span class="line"> client_max_body_size 0; # disable any limits to avoid HTTP 413 for large image uploads</span><br><span class="line"></span><br><span class="line"> # required to avoid HTTP 411: see Issue #1486 (https://github.com/dotcloud/docker/issues/1486)</span><br><span class="line"> chunked_transfer_encoding on;</span><br><span class="line"></span><br><span class="line"> location / &#123;</span><br><span class="line">     # let Nginx know about our auth file</span><br><span class="line">     auth_basic              &quot;Restricted&quot;;</span><br><span class="line">     auth_basic_user_file    docker-registry.htpasswd;</span><br><span class="line"></span><br><span class="line">     proxy_pass http://docker-registry;</span><br><span class="line"> &#125;</span><br><span class="line"> location /_ping &#123;</span><br><span class="line">     auth_basic off;</span><br><span class="line">     proxy_pass http://docker-registry;</span><br><span class="line"> &#125;  </span><br><span class="line"> location /v1/_ping &#123;</span><br><span class="line">     auth_basic off;</span><br><span class="line">     proxy_pass http://docker-registry;</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">让nginx来使用这个virtual-host</span><br><span class="line"># ln -s /etc/nginx/sites-enabled/docker-registry /etc/nginx/conf.d/docker-registry.conf</span><br><span class="line">重启nginx来激活虚拟主机的配置</span><br><span class="line"># service nginx restart</span><br></pre></td></tr></table></figure>
+<h3 id="3-2-加入认证后使用docker-registry"><a href="#3-2-加入认证后使用docker-registry" class="headerlink" title="3.2 加入认证后使用docker-registry"></a>3.2 加入认证后使用docker-registry</h3><p>此时主机的5000端口应该通过防火墙禁止访问（或者在<code>docker run</code>端口映射时只监听回环接口的IP <code>-p 127.0.0.1:5000:5000</code>）。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># curl localhost:5000</span><br><span class="line">&quot;docker-registry server (dev) (v0.8.1)&quot;</span><br></pre></td></tr></table></figure></p>
+<p>如果直接访问访问将得到未授权的信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># curl localhost:8080</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;&lt;title&gt;401 Authorization Required&lt;/title&gt;&lt;/head&gt;</span><br><span class="line">&lt;body bgcolor=&quot;white&quot;&gt;</span><br><span class="line">&lt;center&gt;&lt;h1&gt;401 Authorization Required&lt;/h1&gt;&lt;/center&gt;</span><br><span class="line">&lt;hr&gt;&lt;center&gt;nginx/1.4.7&lt;/center&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure></p>
+<p>带用户认证的docker-registry：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># curl http://sean:sean@sean.domain.com:8080/v1/search</span><br><span class="line">&#123;&quot;num_results&quot;: 2, &quot;query&quot;: &quot;&quot;, &quot;results&quot;: [&#123;&quot;description&quot;: &quot;&quot;, &quot;name&quot;: &quot;library/centos6&quot;&#125;, &#123;&quot;description&quot;: &quot;&quot;, &quot;name&quot;: &quot;library/nginx&quot;&#125;]&#125;</span><br><span class="line"></span><br><span class="line"># docker login registry.domain.com:8080</span><br><span class="line">Username: sean</span><br><span class="line">Password: </span><br><span class="line">Email: zhouxiao@domain.com</span><br><span class="line">Login Succeeded</span><br><span class="line"></span><br><span class="line"># docker pull registry.domain.com:8080/library/centos6</span><br></pre></td></tr></table></figure></p>
+<p>不出意外的话，上面的<code>docker pull</code>会失败：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># docker pull registry.domain.com:8080/library/centos6</span><br><span class="line">Pulling repository registry.domain.com:8080/library/centos6</span><br><span class="line">2014/11/11 21:00:25 Could not reach any registry endpoint</span><br><span class="line"></span><br><span class="line"># docker push registry.domain.com:8080/ubuntu:sean</span><br><span class="line">The push refers to a repository [registry.domain.com:8080/ubuntu] (len: 1)</span><br><span class="line">Sending image list</span><br><span class="line">Pushing repository registry.domain.com:8080/ubuntu (1 tags)</span><br><span class="line">2014/11/12 08:11:32 HTTP code 401, Docker will not send auth headers over HTTP.</span><br><span class="line"></span><br><span class="line">nginx日志</span><br><span class="line">2014/11/12 07:03:49 [error] 14898#0: *193 no user/password was provided for basic </span><br><span class="line">authenticatGET /v1/repositories/library/centos6/tags HTTP/1.1&quot;, host: &quot;registry.domain.com:8080&quot;</span><br></pre></td></tr></table></figure></p>
+<p>本文后的第1篇参考文档没有出现这个问题，但评论中有提及。<br>有人说是<code>backend storage</code>的问题，这里是本地存储镜像，不应该。经过查阅大量资料，并反复操作验证，是docker-registry版本的问题。从<code>v0.10.0</code>开始，<code>docker login</code>虽然Succeeded，但<code>pull</code>或<code>push</code>的时候，<code>~/.dockercfg</code>下的用户登录信息将不允许通过HTTP明文传输。（如果你愿意可以查看<code>v0.10.0</code>的源码 <a href="https://github.com/docker/docker/blob/v0.10.0/registry/registry.go" target="_blank" rel="noopener">registry.go</a>，在分支<code>v0.9.1</code>及以前是没有<code>HTTP code 401, Docker will not send auth headers over HTTP的</code>）<br>目前的办法三个：</p>
+<ul>
+<li>撤退，这就是为什么先说明在操作前线查看到这的原因了</li>
+<li>换成<code>v0.9.1</code>及以下版本。现在都<code>v1.3.1</code>了，我猜你不会这么做</li>
+<li>修改源码<a href="https://github.com/docker/docker/tree/master/registry" target="_blank" rel="noopener">session.go</a>，去掉相应的判断行，然后git下来重新安装。我猜你更不会这么做</li>
+<li>安装SSL证书，使用HTTPS传输。这是明智的选择，新版本docker也推荐我们这么做，往下看。</li>
+</ul>
+<h3 id="3-3-为nginx安装ssl证书"><a href="#3-3-为nginx安装ssl证书" class="headerlink" title="3.3 为nginx安装ssl证书"></a>3.3 为nginx安装ssl证书</h3><p>首先打开nginx配置文件中ssl的三行注释<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># vi /etc/nginx/conf.d/docker-registry.conf</span><br><span class="line">...</span><br><span class="line">server &#123;</span><br><span class="line"> listen 8000;</span><br><span class="line"> server_name registry.domain.com;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> ssl on;</span><br><span class="line"> ssl_certificate /etc/nginx/ssl/nginx.crt;</span><br><span class="line"> ssl_certificate_key /etc/nginx/ssl/nginx.key;</span><br><span class="line">...</span><br></pre></td></tr></table></figure></p>
+<p>保存之后，nginx会分别从<code>/etc/nginx/ssl/nginx.crt</code>和<code>/etc/nginx/ssl/nginx.key</code>读取ssl证书和私钥。如果你自己愿意花钱买一个ssl证书，那就会变得非常简单，把证书和私钥拷贝成上面一样即可。关于SSL以及签署ssl证书，请参考其他文章。<br>这里我们自签署一个ssl证书，把当前系统作为（私有）证书颁发中心（CA）。</p>
+<p>创建存放证书的目录<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># mkdir /etc/nginx/ssl</span><br></pre></td></tr></table></figure></p>
+<p>确认CA的一些配置文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"># vi /etc/pki/tls/openssl.cnf</span><br><span class="line">...</span><br><span class="line">[ CA_default ]</span><br><span class="line"></span><br><span class="line">dir             = /etc/pki/CA           # Where everything is kept</span><br><span class="line">certs           = $dir/certs            # Where the issued certs are kept</span><br><span class="line">crl_dir         = $dir/crl              # Where the issued crl are kept</span><br><span class="line">database        = $dir/index.txt        # database index file.</span><br><span class="line">#unique_subject = no                    # Set to &apos;no&apos; to allow creation of</span><br><span class="line">                                        # several ctificates with same subject.</span><br><span class="line">new_certs_dir   = $dir/newcerts         # default place for new certs.</span><br><span class="line"></span><br><span class="line">certificate     = $dir/cacert.pem       # The CA certificate</span><br><span class="line">serial          = $dir/serial           # The current serial number</span><br><span class="line">crlnumber       = $dir/crlnumber        # the current crl number</span><br><span class="line">                                        # must be commented out to leave a V1 CRL</span><br><span class="line">crl             = $dir/crl.pem          # The current CRL</span><br><span class="line">private_key     = $dir/private/cakey.pem # The private key</span><br><span class="line">RANDFILE        = $dir/private/.rand    # private random number file</span><br><span class="line">...</span><br><span class="line">default_days    = 3650                  # how long to certify for</span><br><span class="line">...</span><br><span class="line">[ req_distinguished_name ]</span><br><span class="line">countryName                     = Country Name (2 letter code)</span><br><span class="line">countryName_default             = CN</span><br><span class="line">countryName_min                 = 2</span><br><span class="line">countryName_max                 = 2</span><br><span class="line"></span><br><span class="line">stateOrProvinceName             = State or Province Name (full name)</span><br><span class="line">stateOrProvinceName_default     = GD</span><br><span class="line">...[ req_distinguished_name ]部分主要是颁证时一些默认的值，可以不动</span><br></pre></td></tr></table></figure>
+<p>(1) 生成根密钥<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># cd /etc/pki/CA/</span><br><span class="line"># openssl genrsa -out private/cakey.pem 2048</span><br></pre></td></tr></table></figure></p>
+<p>为了安全起见，修改cakey.pem私钥文件权限为600或400，也可以使用子shell生成<code>( umask 077; openssl genrsa -out private/cakey.pem 2048 )</code>，下面不再重复。</p>
+<p>(2) 生成根证书<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># openssl req -new -x509 -key private/cakey.pem -out cacert.pem</span><br></pre></td></tr></table></figure></p>
+<p>会提示输入一些内容，因为是私有的，所以可以随便输入，最好记住能与后面保持一致。上面的自签证书<code>cacert.pem</code>应该生成在<code>/etc/pki/CA</code>下。</p>
+<p>(3) 为我们的nginx web服务器生成ssl密钥<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># cd /etc/nginx/ssl</span><br><span class="line"># openssl genrsa -out nginx.key 2048</span><br></pre></td></tr></table></figure></p>
+<p>我们的CA中心与要申请证书的服务器是同一个，否则应该是在另一台需要用到证书的服务器上生成。</p>
+<p>(4) 为nginx生成证书签署请求<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># openssl req -new -key nginx.key -out nginx.csr</span><br><span class="line">...</span><br><span class="line">Country Name (2 letter code) [AU]:CN</span><br><span class="line">State or Province Name (full name) [Some-State]:GD</span><br><span class="line">Locality Name (eg, city) []:SZ</span><br><span class="line">Organization Name (eg, company) [Internet Widgits Pty Ltd]:COMPANY</span><br><span class="line">Organizational Unit Name (eg, section) []:IT_SECTION</span><br><span class="line">Common Name (e.g. server FQDN or YOUR name) []:your.domain.com</span><br><span class="line">Email Address []:</span><br><span class="line"></span><br><span class="line">Please enter the following &apos;extra&apos; attributes</span><br><span class="line">to be sent with your certificate request</span><br><span class="line">A challenge password []:</span><br><span class="line">An optional company name []:</span><br><span class="line">...</span><br></pre></td></tr></table></figure></p>
+<p>同样会提示输入一些内容，其它随便，除了<code>Commone Name</code>一定要是你要授予证书的服务器域名或主机名，challenge password不填。</p>
+<p>(5) 私有CA根据请求来签发证书<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># openssl ca -in nginx.csr -out nginx.crt</span><br></pre></td></tr></table></figure></p>
+<p>上面签发过程其实默认使用了<code>-cert cacert.pem -keyfile cakey.pem</code>，这两个文件就是前两步生成的位于<code>/etc/pki/CA</code>下的根密钥和根证书。</p>
+<p>到此我们已经拥有了建立ssl安全连接所需要的所有文件，并且服务器的crt和key都位于配置的目录下，唯有根证书<code>cacert.pem</code>位置不确定放在CentOS6下的哪个地方。<br>经验证以下几个位置不行：（<a href="http://kb.kerio.com/product/kerio-connect/server-configuration/ssl-certificates/adding-trusted-root-certificates-to-the-server-1605.html" target="_blank" rel="noopener">Adding trusted root certificates to the server</a>）<br><code>/etc/pki/ca-trust/source/anchors</code>、<code>/etc/pki/ca-trust/source</code>、<code>/etc/pki/ca-trust/extracted</code>、<br><code>/etc/pki/ca-trust/extracted/pem/</code>、<code>/etc/pki/tls/certs/cacert.crt</code><br>都会报错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># docker login https://registry.domain.com:8000</span><br><span class="line">Username (sean): sean</span><br><span class="line">2014/11/14 02:32:48 Error response from daemon: Invalid Registry endpoint: Get https://registry.domain.com:8000/v1/_ping: x509: certificate signed by unknown authority</span><br><span class="line"></span><br><span class="line"># curl https://sean:sean@registry.domain.com:8000/</span><br><span class="line">curl: (60) Peer certificate cannot be authenticated with known CA certificates</span><br><span class="line">More details here: http://curl.haxx.se/docs/sslcerts.html</span><br><span class="line">curl performs SSL certificate verification by default, using a &quot;bundle&quot;</span><br><span class="line"> of Certificate Authority (CA) public keys (CA certs). If the default</span><br><span class="line"> bundle file isn&apos;t adequate, you can specify an alternate file</span><br><span class="line"> using the --cacert option.</span><br><span class="line">If this HTTPS server uses a certificate signed by a CA represented in</span><br><span class="line"> the bundle, the certificate verification probably failed due to a</span><br><span class="line"> problem with the certificate (it might be expired, or the name might</span><br><span class="line"> not match the domain name in the URL).</span><br><span class="line">If you&apos;d like to turn off curl&apos;s verification of the certificate, use</span><br><span class="line"> the -k (or --insecure) option.</span><br></pre></td></tr></table></figure></p>
+<p>(6) 目前让根证书起作用的只发现一个办法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># cp /etc/pki/tls/certs/ca-bundle.crt&#123;,.bak&#125;    备份以防出错</span><br><span class="line"># cat /etc/pki/CA/cacert.pem &gt;&gt; /etc/pki/tls/certs/ca-bundle.crt</span><br><span class="line"></span><br><span class="line"># curl https://sean:sean@registry.domain.com:8000</span><br><span class="line">&quot;docker-registry server (dev) (v0.8.1)&quot;</span><br></pre></td></tr></table></figure></p>
+<p>将<code>cacert.pem</code>根证书追加到<code>ca-bundle.crt</code>后一定要重启docker后台进程才行。</p>
+<p>如果<code>docker login</code>依然报错<code>certificate signed by unknown authority</code>，参考<a href="https://docs.docker.com/articles/https/" target="_blank" rel="noopener">Running Docker with https</a>，启动docker后台进程时指定信任的CA根证书：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># docker -d --tlsverify --tlscacert /etc/pki/CA/cacert.pem</span><br><span class="line"></span><br><span class="line">或者将cacert.pem拷贝到~/.docker/ca.pem</span><br><span class="line"># mkdir ~/.docker &amp;&amp; cp /etc/pki/CA/cacert.pem ~/.docker/ca.pem</span><br><span class="line"># docker -d</span><br><span class="line">最好重启一下registry</span><br><span class="line"># docker restart &lt;registry_container_id&gt;</span><br></pre></td></tr></table></figure></p>
+<p>上面用“如果”是因为一开始总提示<code>certificate signed by unknown authority</code>，<a href="https://github.com/docker/docker/blob/master/docs/sources/articles/certificates.md" target="_blank" rel="noopener">有人说</a>将根证书放在<code>/etc/docker/certs.d</code>下，<a href="">还有人说</a>启动docker daemon收加入<code>--insecure-registry ..</code> 但终究是因为版本差异不成功。但后来又奇迹般的不需要<code>--tlscacert</code>就好了。<br>这个地方挣扎了很久，重点关注一下这个下面几个issue：</p>
+<ul>
+<li><a href="https://github.com/docker/docker-registry/issues/82" target="_blank" rel="noopener">https://github.com/docker/docker-registry/issues/82</a></li>
+<li><a href="https://github.com/docker/docker/pull/2687" target="_blank" rel="noopener">https://github.com/docker/docker/pull/2687</a></li>
+<li><a href="https://github.com/docker/docker/pull/2339" target="_blank" rel="noopener">https://github.com/docker/docker/pull/2339</a></li>
+</ul>
+<p>(7) 最终搞定：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># docker login https://registry.domain.com:8000</span><br><span class="line">Username: sean</span><br><span class="line">Password: </span><br><span class="line">Email: zhouxiao@domain.com</span><br><span class="line">Login Succeeded</span><br><span class="line"></span><br><span class="line"># curl https://sean:sean@registry.domain.com:8000</span><br><span class="line">&quot;docker-registry server (dev) (v0.8.1)&quot;</span><br><span class="line"></span><br><span class="line"># docker push registry.domain.com:8000/centos6:test_priv</span><br><span class="line">The push refers to a repository [registry.domain.com:8000/centos6] (len: 1)</span><br><span class="line">Sending image list</span><br><span class="line">Pushing repository registry.domain.com:8000/centos6 (1 tags)</span><br><span class="line">511136ea3c5a: Image successfully pushed </span><br><span class="line">5b12ef8fd570: Image successfully pushed </span><br><span class="line">68edf809afe7: Image successfully pushed </span><br><span class="line">40627956f44c: Image successfully pushed </span><br><span class="line">Pushing tag for rev [40627956f44c] on &#123;https://registry.domain.com:8000/v1/repositories/centos6/tags/test_priv&#125;</span><br></pre></td></tr></table></figure></p>
+<p>但还有一个小问题没解决，虽然已经可以正常使用，但每次请求在nginx的error.log中还是会有<code>[error] 8299#0: *27 no user/password was provided for basic authentication</code>，应该是这个版本docker暂未解决的bug。</p>
+<h3 id="3-3-其它问题"><a href="#3-3-其它问题" class="headerlink" title="3.3 其它问题"></a>3.3 其它问题</h3><p>(1) docker后台进程意外中断后，重新<code>docker start &lt;container_id&gt;</code>报错<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># docker start b36bd796bd3d</span><br><span class="line">Error: Cannot start container b36bd796bd3d: Error getting container b36bd796bd3d463c4fedb70d98621e7318ec3d5cd14b2f60b1d182ad3cbcc652 </span><br><span class="line">from driver devicemapper: Error mounting &apos;/dev/mapper/docker-253:0-787676-b36bd796bd3d463c4fedb70d98621e7318ec3d5cd14b2f60b1d182ad3cbcc652&apos; </span><br><span class="line">on &apos;/var/lib/docker/devicemapper/mnt/b36bd796bd3d463c4fedb70d98621e7318ec3d5cd14b2f60b1d182ad3cbcc652&apos;: device or resource busy</span><br><span class="line">2014/11/08 15:14:57 Error: failed to start one or more containers</span><br></pre></td></tr></table></figure></p>
+<p>经分析产生这个问题的原因是做了一个操作：在docker后台进程启动的终端，继续回车后会临时退出后台进程的日志输出，我就在这个shell下使用yum安装软件包，但由于网络原因yum卡住不动，于是我就另起了一个终端kill了这个yum进程，不知为何会影响到表面已经退出前台输出的docker。解决办法是umount容器的挂载点：（见<a href="https://github.com/docker/docker/issues/5684" target="_blank" rel="noopener">这里</a>）<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># umount /var/lib/docker/devicemapper/mnt/b36bd796bd3d463c4fedb70d98621e7318ec3d5cd14b2f60b1d182ad3cbcc652</span><br><span class="line"></span><br><span class="line"># service docker start   正常</span><br></pre></td></tr></table></figure></p>
+<p>能想到的另外一个办法是，启动docker后台进程时，重定向输出<code>docker -d &gt; /dev/null 2&gt;&amp;1</code>（/var/log/docker已自动记录了一份日志）。</p>
+<p>(2) 配置完nginx的docker-registry.conf后启动报错<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># service nginx start</span><br><span class="line">[emerg] 14714#0: unknown directive &quot;upstream&quot; in /etc/nginx/conf.d/docker-registry.conf:4</span><br></pre></td></tr></table></figure></p>
+<p>原因是nginx版本太低，一些配置指令不兼容，使用<code>yum install nginx</code>默认安装了1.0.x，卸载重新下载<code>nginx-1.4.7-1.el6.ngx.x86_64.rpm</code>安装解决。</p>
+<p>(3) 网络设置代理问题<br><code>pull, push</code>官网的镜像时由于GFW的原因需要设置代理，但不是<code>http_proxy</code>而是<code>HTTP_PROXY</code>，对于docker来说同时设置这两个值就会出问题，有时出于安装软件包的需要设置<code>http_proxy</code>，就会导致冲突。在docker-registry中如果忘记了当前哪一个在起作用，找遍所有问题都发现不了原因，而docker返回给我们的错误也难以判断。切记~</p>
+<p>TO-DO<br>   如何删除docker-registry的里的镜像</p>
+<h2 id="4-参考"><a href="#4-参考" class="headerlink" title="4. 参考"></a>4. 参考</h2><ul>
+<li><a href="https://docker.cn/p/deploy-your-own-private-docker-registry/" target="_blank" rel="noopener">部署自己的私有 Docker Registry</a> [<a href="http://www.activestate.com/blog/2014/01/deploying-your-own-private-docker-registry" target="_blank" rel="noopener">英文</a>]</li>
+<li><a href="https://github.com/docker/docker-registry" target="_blank" rel="noopener">Official docker-registry README</a></li>
+<li><a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-a-private-docker-registry-on-ubuntu-14-04" target="_blank" rel="noopener">How To Set Up a Private Docker Registry on Ubuntu 14.04</a></li>
+<li><a href="http://beta-docs.docker.io/reference/api/hub_registry_spec/" target="_blank" rel="noopener">The Docker Hub and the Registry spec</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/centos/" rel="tag"># centos</a>
+          
+            <a href="/tags/docker/" rel="tag"># docker</a>
+          
+            <a href="/tags/docker-registry/" rel="tag"># docker-registry</a>
+          
+            <a href="/tags/nginx/" rel="tag"># nginx</a>
+          
+            <a href="/tags/ssl/" rel="tag"># ssl</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/11/08/github-mail-warning-dns/" rel="next" title="完全解决Github Pages邮件两次warning（DNS解析问题）">
+                <i class="fa fa-chevron-left"></i> 完全解决Github Pages邮件两次warning（DNS解析问题）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/11/17/dockerfile-introduction/" rel="prev" title="Dockerfile指令详解">
+                Dockerfile指令详解 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar_sean.jpg"
+                alt="seanlook" />
+            
+              <p class="site-author-name" itemprop="name">seanlook</p>
+              <p class="site-description motion-element" itemprop="description">Stay hungry, stay foolish.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">120</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">121</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/seanlook" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:seanlook7@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="http://weibo.com/zhouxiaozhxi" target="_blank" title="Weibo">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>Weibo</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Docker-Registry-说明"><span class="nav-text">1. Docker Registry 说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-在CentOS上搭建docker私服"><span class="nav-text">2. 在CentOS上搭建docker私服</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-安装docker-registry"><span class="nav-text">2.1 安装docker-registry</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-客户端使用"><span class="nav-text">2.2 客户端使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-加入nginx认证"><span class="nav-text">3. 加入nginx认证</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-安装及配置nginx"><span class="nav-text">3.1 安装及配置nginx</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-加入认证后使用docker-registry"><span class="nav-text">3.2 加入认证后使用docker-registry</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-为nginx安装ssl证书"><span class="nav-text">3.3 为nginx安装ssl证书</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-其它问题"><span class="nav-text">3.3 其它问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-参考"><span class="nav-text">4. 参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2014 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">seanlook</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+  <div style="display: none;">
+    <script src="//s95.cnzz.com/z_stat.php?id=1253513173&web_id=1253513173" language="JavaScript"></script>
+  </div>
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seanlookcom.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://seanlook.com/2014/11/13/deploy-private-docker-registry-with-nginx-ssl/';
+          this.page.identifier = '2014/11/13/deploy-private-docker-registry-with-nginx-ssl/';
+          this.page.title = '搭建docker内网私服（docker-registry with nginx&ssl on centos）';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://seanlookcom.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("NliJVBn0857TMk5HYrIRt5wp-gzGzoHsz", "jB9B4QG8Rm8YP04RQqnsKy5M");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

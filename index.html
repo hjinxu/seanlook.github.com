@@ -324,7 +324,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://seanlook.com/2018/04/13/hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://seanlook.com/2018/03/22/mysql-ppt-replication-and-consistency/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="seanlook">
@@ -343,7 +343,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/04/13/hello-world/" itemprop="url">Hello World</a></h1>
+                <a class="post-title-link" href="/2018/03/22/mysql-ppt-replication-and-consistency/" itemprop="url">MySQL复制与数据一致性 分享</a></h1>
         
 
         <div class="post-meta">
@@ -355,8 +355,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-13T17:31:58+08:00">
-                2018-04-13
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-22T21:32:49+08:00">
+                2018-03-22
               </time>
             
 
@@ -371,12 +371,34 @@
               
                 <span class="post-meta-item-text">更新于&#58;</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2018-04-13T17:31:58+08:00">
-                2018-04-13
+              <time title="更新于" itemprop="dateModified" datetime="2018-03-22T21:32:49+08:00">
+                2018-03-22
               </time>
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index">
+                    <span itemprop="name">MySQL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -386,9 +408,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/04/13/hello-world/#comments" itemprop="discussionUrl">
+                <a href="/2018/03/22/mysql-ppt-replication-and-consistency/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/04/13/hello-world/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/03/22/mysql-ppt-replication-and-consistency/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -396,7 +418,7 @@
 
           
           
-             <span id="/2018/04/13/hello-world/" class="leancloud_visitors" data-flag-title="Hello World">
+             <span id="/2018/03/22/mysql-ppt-replication-and-consistency/" class="leancloud_visitors" data-flag-title="MySQL复制与数据一致性 分享">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -429,17 +451,845 @@
       
         
           
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+            <p>这是针对公司内部的一个分享，主题是去年10月份就想好的，中间因为一些项目，也包括自己的拖延症，ppt一直没准备好。</p>
+<p>在临近快要辞职的时候，还是想兑现一下承诺，加班加点完成了。</p>
+<p>分享的内容包括：</p>
+<ol>
+<li><p>binlog介绍<br>我们有不少项目依赖于binlog同步数据，所以对binlog的格式以及内部结构进行了简单介绍</p>
+</li>
+<li><p>innodb事务的提交过程<br>主要是两阶段提交的一些概念和原理，与下面的组提交原理一起，方便后面对崩溃恢复机制的理解</p>
+</li>
+<li><p>组提交<br>着重介绍组提交的概念，以及它的实现。为下面的并行复制做铺垫</p>
+</li>
+<li><p>介绍MySQL复制流程<br>种类包括异步复制、半同步复制、增强半同步复制和并行复制，顺便结束了复制延迟常见的原因</p>
+</li>
+<li><p>基于上面的原理，介绍主库、从库分别在异常宕机的情况下，如何保证数据一致的</p>
+</li>
+<li><p>高可用类型<br>这部分由于时间的关系，没有准备，并且本身也是一个很大课题，所以干脆就去掉了</p>
+</li>
+</ol>
+<p>演示稿中穿插了一些思考题，感兴趣的朋友不妨思考思考。</p>
+
+
+	<div class="row">
+    <embed src="http://7q5fot.com1.z0.glb.clouddn.com/mysql-replication-and-consistency.pdf" width="100%" height="550" type="application/pdf">
+	</div>
+
+
+
+<hr>
+<p>原文连接地址：<a href="http://seanlook.com/2018/03/22/mysql-ppt-replication-and-consistency/">http://seanlook.com/2018/03/22/mysql-ppt-replication-and-consistency/</a></p>
+<hr>
+<!--
+<iframe src="https://www.slideshare.net/slideshow/embed_code/key/3HLJJcJmM9KLGT" width="900" height="512" frameborder="0" allowfullscreen></iframe>
+<p>–&gt;</p>
+-->
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://seanlook.com/2018/03/21/mysql-pagination-no-offset/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="seanlook">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar_sean.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Sean's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/03/21/mysql-pagination-no-offset/" itemprop="url">MySQL分页优化</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-21T16:32:49+08:00">
+                2018-03-21
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2018-03-21T16:32:49+08:00">
+                2018-03-21
+              </time>
+            
+          </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index">
+                    <span itemprop="name">MySQL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/03/21/mysql-pagination-no-offset/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/03/21/mysql-pagination-no-offset/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2018/03/21/mysql-pagination-no-offset/" class="leancloud_visitors" data-flag-title="MySQL分页优化">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>关于数据库分页查询的话题，网上谈论的很多，但开发人员在使用上还是习惯以往的思路。</p>
+<p>比如我们有个电话记录表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE `t_tel_record` (</span><br><span class="line">  `f_id` bigint(20) unsigned NOT NULL DEFAULT &apos;0&apos; COMMENT &apos;流水号&apos;,</span><br><span class="line">  `f_qiye_id` bigint(20) NOT NULL DEFAULT &apos;0&apos; COMMENT &apos;企业&apos;,</span><br><span class="line">  `f_callno` varchar(20) DEFAULT NULL COMMENT &apos;主叫号码&apos;,</span><br><span class="line">  `f_calltono` varchar(30) DEFAULT NULL COMMENT &apos;被叫号码&apos;,</span><br><span class="line">  `f_Starttime` datetime NOT NULL COMMENT &apos;开始时间&apos;,</span><br><span class="line">  `f_Endtime` datetime DEFAULT NULL COMMENT &apos;结束时间&apos;,</span><br><span class="line">  `f_Calltime` mediumint(8) unsigned NOT NULL DEFAULT &apos;0&apos; COMMENT &apos;通话时间&apos;,</span><br><span class="line">  `f_user_id` bigint(20) NOT NULL COMMENT &apos;员工用户&apos;,</span><br><span class="line">  `f_path` varchar(200) DEFAULT NULL COMMENT &apos;语音文件路径&apos;,</span><br><span class="line">  `f_crm_id` bigint(20) NOT NULL DEFAULT &apos;0&apos; COMMENT &apos;客户库id&apos;,</span><br><span class="line">  `f_call_type` tinyint(4) unsigned NOT NULL DEFAULT &apos;0&apos; COMMENT &apos;0:未知，1:为呼入类型，2:呼出类型&apos;,</span><br><span class="line">  PRIMARY KEY (`f_id`),</span><br><span class="line">  KEY `idx_endtime_userid` (`f_Endtime`,`f_user_id`,`f_qiye_id`),</span><br><span class="line">  KEY `idx_crmid` (`f_crm_id`),</span><br><span class="line">  KEY `idx_qiye_user_calltime` (`f_qiye_id`,`f_Starttime`),</span><br><span class="line">  KEY `idx_calltono` (`f_calltono`)</span><br><span class="line">) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">查询第1页的数据：</span><br><span class="line"> SELECT * FROM t_tel_record</span><br><span class="line"> WHERE f_qiye_id=xxx</span><br><span class="line"> ORDER BY f_Starttime DESC</span><br><span class="line"> LIMIT 0,100</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">当数据量很大，需要查询第10000页的数据：</span><br><span class="line"> SELECT * FROM t_tel_record</span><br><span class="line"> WHERE f_qiye_id=xxx</span><br><span class="line"> ORDER BY f_Starttime DESC</span><br><span class="line"> LIMIT 999900,100  -- 或者 OFFSET 999900 LIMIT 100</span><br></pre></td></tr></table></figure>
+<p>MySQL的 limit m,n 工作原理就是先读取符合where条件的前面m+n条记录，然后抛弃前m条，返回后面n条，所以m越大，偏移量越大，性能就越差。这也是大部分ORM框架生成的分页sql。</p>
+<p>还有数据不准确的问题产生。</p>
+<p><img src="http://7q5fot.com1.z0.glb.clouddn.com/15223856466570.jpg" alt=""></p>
+<p>要优化这类sql大抵有三种方法：</p>
+<ol>
+<li>利用索引来排序</li>
+<li>利用覆盖索引避免回表</li>
+<li>想办法去掉大offset</li>
+</ol>
+<h2 id="利用索引来排序"><a href="#利用索引来排序" class="headerlink" title="利用索引来排序"></a>利用索引来排序</h2><p>这是写sql的基础的优化手段，利用二级索引的有序性，避免filesort。考虑索引 <code>KEY a_b_c (a, b, c)</code> :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">ORDER may get resolved using Index</span><br><span class="line">    – ORDER BY a</span><br><span class="line">    – ORDER BY a,b</span><br><span class="line">    – ORDER BY a, b, c</span><br><span class="line">    – ORDER BY a DESC, b DESC, c DESC</span><br><span class="line">     </span><br><span class="line">WHERE and ORDER both resolved using index:</span><br><span class="line">    – WHERE a = const ORDER BY b, c</span><br><span class="line">    – WHERE a = const AND b = const ORDER BY c</span><br><span class="line">    – WHERE a = const ORDER BY b, c</span><br><span class="line">    – WHERE a = const AND b &gt; const ORDER BY b, c</span><br><span class="line"> </span><br><span class="line">ORDER will not get resolved uisng index (file sort)</span><br><span class="line">    – ORDER BY a ASC, b DESC, c DESC /* mixed sort direction */</span><br><span class="line">    – WHERE g = const ORDER BY b, c /* a prefix is missing */</span><br><span class="line">    – WHERE a = const ORDER BY c /* b is missing */</span><br><span class="line">    – WHERE a = const ORDER BY a, d /* d is not part of index */</span><br></pre></td></tr></table></figure>
+<p>当然不是说利用索引排序性能就一定好，由于MySQL优化器的局限性，也会出现选择选择糟糕的index scan执行计划，见 <a href="http://seanlook.com/2017/10/26/mysql-bad-plan-order_by-limit/">MySQL order by limit 走错索引(range-&gt;indexscan)</a> ，using filesort也有可能比 index scan 要快。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/03/21/mysql-pagination-no-offset/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://seanlook.com/2018/03/11/mysql-replication-error-and-idempotent/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="seanlook">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar_sean.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Sean's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/03/11/mysql-replication-error-and-idempotent/" itemprop="url">MySQL主从复制idempotent模式以及同步错误处理预案</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-11T16:32:49+08:00">
+                2018-03-11
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2018-03-11T16:32:49+08:00">
+                2018-03-11
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index">
+                    <span itemprop="name">MySQL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/03/11/mysql-replication-error-and-idempotent/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/03/11/mysql-replication-error-and-idempotent/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2018/03/11/mysql-replication-error-and-idempotent/" class="leancloud_visitors" data-flag-title="MySQL主从复制idempotent模式以及同步错误处理预案">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h1 id="1-slave-exec-mode-参数作用"><a href="#1-slave-exec-mode-参数作用" class="headerlink" title="1. slave_exec_mode 参数作用"></a>1. slave_exec_mode 参数作用</h1><p><code>slave_exec_mode</code> 可以在主从复制中遇到 duplicate-key 和 no-key-found 错误时，自动覆盖或者略过binlog里面这个row_event，避免报错停止复制。</p>
+<p>这个参数原本是解决像 NDB Cluster 多节点写入冲突的情况，也可以在普通主从、双主、环形复制等情况下解决冲突，保持幂等性。幂等性怎么定义，感兴趣的可以阅读<a href="http://http://blog.wl0.org/2016/05/the-differences-between-idempotent-and-my-suggested-auto-repair-mode/" target="_blank" rel="noopener">The differences between IDEMPOTENT and AUTO-REPAIR mode</a>）。</p>
+<p><code>set global slave_exec_mode=IDEMPOTENT</code> （可以动态修改）使从库运行在 幂等模式，对1062，1032等不同的错误类型，有不同的处理：</p>
+<ol>
+<li>write_row event 遇到主键冲突或唯一索引冲突，这一行被覆写(delete + insert)。<br>delete时候不是full value match，仅需要主键或唯一索引找到记录则删除</li>
+<li>delete_row event 遇到记录不存在，忽略这一行</li>
+<li>update_row event 修改唯一索引导致的冲突，忽略这一行</li>
+</ol>
+<p>注意：  </p>
+<ul>
+<li>idempotent 模式都是对有疑问的<strong>行</strong>进行replace或ignore，不影响其它row。</li>
+<li>idempotent 模式要求表上必须要有主键</li>
+<li>binlog必须是 FULL RBR 模式</li>
+</ul>
+<h1 id="2-slave-skip-errors"><a href="#2-slave-skip-errors" class="headerlink" title="2. slave-skip-errors"></a>2. slave-skip-errors</h1><p>这个参数不能在线修改，只能加到配置文件里面或者启动的时候带上<code>--slave-skip-errors=1032,1062</code>。除非你真的理解它skip掉了什么，否则不建议使用。</p>
+<p>讲一个我所遇到的坑。在我们的一个分库项目中，需要把一个database里面的数据拆成32份，于是做了个主从，把从库里面不需要的那份删除，但复制过来肯定会报 HA_ERR_KEY_NOT_FOUND 错误，于是这也是所期望的，就设置了<code>--slave-skip-errors=1032</code>。</p>
+<p>但接下来就出现 1062:HA_ERR_FOUND_DUPP_KEY 错误！从库只会删数据，不会写入和更新，怎么会出现重复数据？读者不妨试想一下为什么。</p>
+<p>这里做个说明：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">① insert into t values (1, &apos;a&apos;), (2, &apos;b&apos;), (3, &apos;c&apos;);</span><br><span class="line"></span><br><span class="line">② begin;</span><br><span class="line">③ delete from t where id=1;</span><br><span class="line">④ delete from t where id in (1, 2, 3);</span><br><span class="line">⑤ insert into t where (3, &apos;c&apos;), (4, &apos;d&apos;), (5, &apos;e&apos;);</span><br><span class="line">⑥ update t set ... id=1;</span><br><span class="line">⑦ commit;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>事务包括显式事务和隐式事务(transaction)，语句①落在binlog里面也会有begin和end</li>
+<li>一个事物可以包含多个语句(statement)</li>
+<li>一个语句可以影响多行(row)，但属于一个event</li>
+<li>一个语句在binlog里面有多个event (row log event, table map event, xid event…)</li>
+<li>event在binlog里面以 event group 组合起来<br>事务引擎如 InnoDB，event group 就一个事务；非事务引擎如 MyISAM，event group就是一条语句</li>
+</ul>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/03/11/mysql-replication-error-and-idempotent/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://seanlook.com/2018/01/25/maxwell-graylog/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="seanlook">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar_sean.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Sean's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/01/25/maxwell-graylog/" itemprop="url">Binlog可视化搜索：实现类似阿里RDS数据追踪功能</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-25T15:32:49+08:00">
+                2018-01-25
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2018-01-25T15:32:49+08:00">
+                2018-01-25
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index">
+                    <span itemprop="name">MySQL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/01/25/maxwell-graylog/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/01/25/maxwell-graylog/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2018/01/25/maxwell-graylog/" class="leancloud_visitors" data-flag-title="Binlog可视化搜索：实现类似阿里RDS数据追踪功能">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>MySQL Binlog 里面记录了每行数据的变更，开发有时候需要根据这些变更的时间、中间值去查问题，是bug导致的，还是用户操作引发的。然而原始binlog内容不利于检索，有段时间使用阿里RDS企业版DMS数据追踪的功能，也能完成这个工作，甚至生成回滚sql，后由于收费以及容量不够的缘故，放弃不用。</p>
+<p>本文所介绍的就是基于外面开源的各类组件，整合起来，达到类似数据追踪的功能 —— binlog 可视化。<br>功能类似：<a href="https://yq.aliyun.com/articles/338423" target="_blank" rel="noopener">10分钟搭建MySQL Binlog分析+可视化方案</a></p>
+<h2 id="1-主要技术"><a href="#1-主要技术" class="headerlink" title="1. 主要技术"></a>1. 主要技术</h2><p>项目地址： <a href="https://github.com/seanlook/maxwell-graylog" target="_blank" rel="noopener">https://github.com/seanlook/maxwell-graylog</a></p>
+<ul>
+<li><p>docker<br>使用容器来实现资源的申请和释放，毕竟这类检索binlog内容的需求不多。<br>本文基于阿里云的容器服务。  </p>
+</li>
+<li><p>maxwell<br>从mysql server获取binlog和字段信息，组装成json流。建议先阅读 <a href="http://seanlook.com/2018/01/13/maxwell-binlog/">http://seanlook.com/2018/01/13/maxwell-binlog/</a><br>官网：<a href="http://maxwells-daemon.io/" target="_blank" rel="noopener">http://maxwells-daemon.io/</a>  </p>
+</li>
+<li><p>graylog<br>代替ELK技术栈的日志收集、处理、展示平台。社区版够用，需要自行安装，也可以把 graylog 换成 ELK stack。<br>官网：<a href="https://www.graylog.org/" target="_blank" rel="noopener">https://www.graylog.org/</a>  </p>
+</li>
+<li><p>nxlog<br>nxlog 是用 C 语言写的一个开源日志收集处理软件，它是一个模块化、多线程、高性能的日志管理解决方案，支持多平台。<br>参考：<a href="http://blog.csdn.net/weixin_29477879/article/details/52183746" target="_blank" rel="noopener">http://blog.csdn.net/weixin_29477879/article/details/52183746</a>  </p>
+</li>
+<li><p>rabbitmq<br>一款开源消息队列中间件，采用Erlang语言开发，RabbitMQ是AMQP(Advanced Message Queueing Protocol)的标准实现。建议先阅读 <a href="http://seanlook.com/2018/01/06/rabbitmq-introduce/">http://seanlook.com/2018/01/06/rabbitmq-introduce/</a> 。<br>你也可以把消息队列换成kafka。</p>
+</li>
+</ul>
+<p><img src="http://7q5fot.com1.z0.glb.clouddn.com/maxwell-graylog.png" alt="maxwell-graylog.png"></p>
+<h2 id="2-使用说明"><a href="#2-使用说明" class="headerlink" title="2. 使用说明"></a>2. 使用说明</h2><h3 id="2-1-举例"><a href="#2-1-举例" class="headerlink" title="2.1 举例"></a>2.1 举例</h3><blockquote>
+<p>查看 some3 库 2018-01-22 13:00:00 ~ 2018-01-22 13:00:00 之间，表 t_ecsome_detail 的binlog变化，graylog根据AMQP协议从rabbitmq取binlog json流</p>
+</blockquote>
+<p>提前创建一个 Swarm容器集群，名字叫 maxwell。<br><img src="http://7q5fot.com1.z0.glb.clouddn.com/compose-template.png" alt="compose-template.png"></p>
+<p>在【编排模板】里选择 <em>maxwell-graylog-rabbitmq</em>，【创建应用】下一步修改编排模板：<br>（只修改 environment 里面的变量值）<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">mysql-binlogsvr:</span><br><span class="line">  image: registry-vpc.cn-hangzhou.aliyuncs.com/workec/mysql_binlogsvr:1.1.3</span><br><span class="line">  volumes:</span><br><span class="line">    - maxwellgraylog_db_data:/var/lib/mysql</span><br><span class="line">  environment:</span><br><span class="line">    DBINSTANCE_ID: rm-bp19t9it7c2998633</span><br><span class="line">    START_TIME: &apos;2018-01-22 13:00:00&apos;</span><br><span class="line">    END_TIME: &apos;2018-01-22 14:00:00&apos;</span><br><span class="line">    ACCESS_ID: LTAIXKHm0v6ob5P4</span><br><span class="line">    ACCESS_SECRET: F7g***************Nll19no</span><br><span class="line">    MYSQL_ROOT_PASSWORD: strongpassword</span><br><span class="line"></span><br><span class="line">maxwell-svr:</span><br><span class="line">  image: registry-vpc.cn-hangzhou.aliyuncs.com/workec/maxwell_graylog:1.1.3</span><br><span class="line">  depends_on:</span><br><span class="line">    - mysql-binlogsvr</span><br><span class="line">  environment:</span><br><span class="line">    producer: rabbitmq</span><br><span class="line">    MYSQL_HOST:</span><br><span class="line">    MYSQL_USER:</span><br><span class="line">    MYSQL_PASSWORD:</span><br><span class="line">    MYSQL_HOST_GIT: db_some_shard3</span><br><span class="line">    include_dbs:</span><br><span class="line">    include_tables: t_ecsome_detail</span><br><span class="line">    include_column_values:</span><br><span class="line">    init_position:</span><br><span class="line">    rabbitmq_host: 10.81.xx.xxx</span><br><span class="line">    rabbitmq_virtual_host: /maxwell</span><br><span class="line">    rabbitmq_user: admin</span><br><span class="line">    rabbitmq_pass: admin</span><br><span class="line">    kafka_server:</span><br><span class="line">    kafka_producer_partition_by: database</span><br><span class="line">    MAXWELL_OPTS:</span><br><span class="line">  volumes:</span><br><span class="line">    - maxwellgraylog_db_data:/var/lib/mysql</span><br><span class="line">  links:</span><br><span class="line">    - mysql-binlogsvr:mysql_binlogsvr</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-2-变量-参数说明："><a href="#2-2-变量-参数说明：" class="headerlink" title="2.2 变量/参数说明："></a>2.2 变量/参数说明：</h3><ul>
+<li><code>DBINSTANCE_ID</code><br>需要分析哪个实例的binlog。必须提供  </li>
+<li><code>ACCESS_ID</code>, <code>ACCESS_SECRET</code><br>从OSS下载该实例binlog的key，这个key的用户需要RDS的读权限。必须提供  </li>
+<li><code>START_TIME</code>, <code>END_TIME</code><br>需要分析 binlog 大致位于哪个时间段。请尽可能的精确，如果时间范围过大，可能耗时非常久。3个binlog入完graylog大约6分钟。不能保持示例默认的值<br>如果你想从 <code>MYSQL_HOST</code> 直接在线拉取binlog，则不要设置设置 START_TIME 和 END_TIME，程序会一致从当前位置持续读取。  </li>
+<li><code>MYSQL_ROOT_PASSWORD</code><br>mysql binlogsvr 的root的密码。默认为 strongpassword
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/01/25/maxwell-graylog/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://seanlook.com/2018/01/14/rabbitmq-maxwell-consumer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="seanlook">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar_sean.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Sean's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/01/14/rabbitmq-maxwell-consumer/" itemprop="url">基于MySQL binlog增量数据同步方案(maxwell+rabbimt+pydbsync)</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-14T15:32:49+08:00">
+                2018-01-14
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2018-01-14T15:32:49+08:00">
+                2018-01-14
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index">
+                    <span itemprop="name">MySQL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/01/14/rabbitmq-maxwell-consumer/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/01/14/rabbitmq-maxwell-consumer/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2018/01/14/rabbitmq-maxwell-consumer/" class="leancloud_visitors" data-flag-title="基于MySQL binlog增量数据同步方案(maxwell+rabbimt+pydbsync)">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>应用场景：同 <a href="http://seanlook.com/2017/09/05/mysql-binlog-subscribe-simple-for-dba/">http://seanlook.com/2017/09/05/mysql-binlog-subscribe-simple-for-dba/</a> ，但更灵活：</p>
+<blockquote>
+<p>实时同步部分表到另外一个数据库实例<br>比如在数据库迁库时，将当天表的数据同步到新库，模拟阿里云dms数据传输的功能，相当于在测试环境演练，减少失误。<br>另外还可以从新库反向同步增量数据到老库，解决测试环境多项目测试引起数据库冲突的问题。</p>
+<p>正式切库时的回滚措施<br>比如数据库迁移项目，切换期间数据写向新库，但如果切换失败需要回滚到老库，就需要把这段时间新增的数据同步回老库（启动消费程序），这就不需要程序段再考虑复杂的回滚设计。</p>
+<p>数据库闪回<br>关于数据库误操作的闪回方案，见 <a href="http://seanlook.com/2017/03/03/mysql-flashback_use_purged-binlog/">文章MySQL根据离线binlog快速闪回</a> 。<code>binlog2sql</code>的 <code>-B</code> 选项可以将sql反向组装，生产回滚sql。如果需要完善的闪回功能，要进一步开发，提高易用性。</p>
+<p>binlog搜索功能<br>目前组内一版的binlog搜索功能，是离线任务处理的方式，好处是不会占用太大空间，缺点是处理时间较长。通过实时binlog解析过滤的方式，入ES可以快速搜索。需要进一步开发完善。<br>结合graylog可以实现阿里云RDS类似的数据追踪功能。见 <a href="http://seanlook.com/2018/01/25/maxwell-graylog/">http://seanlook.com/2018/01/25/maxwell-graylog/</a> </p>
+</blockquote>
+<p>rabbitmq介绍：<a href="http://seanlook.com/2018/01/06/rabbitmq-introduce/">http://seanlook.com/2018/01/06/rabbitmq-introduce/</a></p>
+<p>maxwell介绍：<a href="http://seanlook.com/2018/01/13/maxwell-binlog/">http://seanlook.com/2018/01/13/maxwell-binlog/</a></p>
+<p>数据已经生成，要完成 MySQL binlog 增量数据同步，还差一个消费者程序，将rabbitmq里面的消息取出来，在目标库重放：</p>
+<ul>
+<li><strong> <a href="https://github.com/seanlook/pydbsync" target="_blank" rel="noopener">https://github.com/seanlook/pydbsync</a> </strong></li>
+</ul>
+<p>目前这个增量程序重放动作是：</p>
+<ul>
+<li>binlog里面 insert 和 update 行，都变成 replace into </li>
+<li>binlog里面 delele ，变成 delete ignore xxx limit 1</li>
+<li>alter/create，原封不动</li>
+</ul>
+<p>所以如果表上没有主键或者唯一索引，是非常难搞定的，原本的update变成 replace into 多插入一条数据。当然如果把 update 事件改成 <code>update tables set f1=v1,f2=v2 where f1=v1,f2=vv2 limit 1</code> 也没毛病。</p>
+<p>使用python3，安装rabbitmq 的python客户端即可：<code>pip install pika</code><br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/01/14/rabbitmq-maxwell-consumer/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -476,6 +1326,10 @@
   </section>
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+  </nav>
+
 
 
           </div>
@@ -523,14 +1377,32 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">120</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
             
 
             
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
 
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">121</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
             
 
           </nav>

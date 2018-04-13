@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.lug.ustc.edu.cn/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="vagrant,virtualbox,虚拟化,开发环境," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Sean's Notes" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="1. vagrant介绍1.1 vagrant能做什么做Web开发（java/php/python/ruby…）少不了要在本地搭建好开发环境，虽然说目前各种脚本/语言都有对应的Windows版，甚至是一键安装包，但很多时候和Windows环境的兼容性（如配置文件、编译的模块）并不是那么好，麻烦的问题是实际部署的环境通常是Linux，常常还要面临着开发和部署环境不一致，上线前还要大量的调试。而如果让">
+<meta name="keywords" content="vagrant,virtualbox,虚拟化,开发环境">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在Mac在Mac&#x2F;win7下上使用Vagrant打造本地开发环境">
+<meta property="og:url" content="http://seanlook.com/2015/03/25/vagrant/index.html">
+<meta property="og:site_name" content="Sean&#39;s Notes">
+<meta property="og:description" content="1. vagrant介绍1.1 vagrant能做什么做Web开发（java/php/python/ruby…）少不了要在本地搭建好开发环境，虽然说目前各种脚本/语言都有对应的Windows版，甚至是一键安装包，但很多时候和Windows环境的兼容性（如配置文件、编译的模块）并不是那么好，麻烦的问题是实际部署的环境通常是Linux，常常还要面临着开发和部署环境不一致，上线前还要大量的调试。而如果让">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2015-03-27T10:46:23.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在Mac在Mac&#x2F;win7下上使用Vagrant打造本地开发环境">
+<meta name="twitter:description" content="1. vagrant介绍1.1 vagrant能做什么做Web开发（java/php/python/ruby…）少不了要在本地搭建好开发环境，虽然说目前各种脚本/语言都有对应的Windows版，甚至是一键安装包，但很多时候和Windows环境的兼容性（如配置文件、编译的模块）并不是那么好，麻烦的问题是实际部署的环境通常是Linux，常常还要面临着开发和部署环境不一致，上线前还要大量的调试。而如果让">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: 'WNWHBKUL26',
+      apiKey: 'cec5cc7d455c77d448433aa60f989766',
+      indexName: 'seanlook',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://seanlook.com/2015/03/25/vagrant/"/>
+
+
+
+
+
+  <title>在Mac在Mac/win7下上使用Vagrant打造本地开发环境 | Sean's Notes</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?62e026415456b0339db6d3912577a9fa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Sean's Notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Stay hungry, stay foolish.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://seanlook.com/2015/03/25/vagrant/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="seanlook">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar_sean.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Sean's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">在Mac在Mac/win7下上使用Vagrant打造本地开发环境</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-03-25T11:21:25+08:00">
+                2015-03-25
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2015-03-27T18:46:23+08:00">
+                2015-03-27
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Virtualization/" itemprop="url" rel="index">
+                    <span itemprop="name">Virtualization</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2015/03/25/vagrant/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2015/03/25/vagrant/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2015/03/25/vagrant/" class="leancloud_visitors" data-flag-title="在Mac在Mac/win7下上使用Vagrant打造本地开发环境">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="1-vagrant介绍"><a href="#1-vagrant介绍" class="headerlink" title="1. vagrant介绍"></a>1. vagrant介绍</h1><h2 id="1-1-vagrant能做什么"><a href="#1-1-vagrant能做什么" class="headerlink" title="1.1 vagrant能做什么"></a>1.1 vagrant能做什么</h2><p>做Web开发（java/php/python/ruby…）少不了要在本地搭建好开发环境，虽然说目前各种脚本/语言都有对应的Windows版，甚至是一键安装包，但很多时候和Windows环境的兼容性（如配置文件、编译的模块）并不是那么好，麻烦的问题是实际部署的环境通常是Linux，常常还要面临着开发和部署环境不一致，上线前还要大量的调试。而如果让每个开发人员都自己去搭建本地环境，安装虚拟机、下载ISO镜像、选择规格安装创建vm、安装OS、配置，会耗费非常多的时间，如果是团队开发应该要尽量保持每个人的运行环境一致。此时vagrant正式你所需要的。不适用正式环境部署。</p>
+<p>vagrant实际上一套虚拟机管理工具，基于Ruby开发，底层支持VirtualBox、VMware甚至AWS、docker等作为虚拟化系统。我们可以通过 Vagrant 封装一个 Linux 的开发环境，分发给团队成员。成员可以在自己喜欢的桌面系统（Mac/Windows/Linux）上开发程序，代码却能统一在封装好的环境里运行，“代码在我机子上运行没有问题”这种说辞将成为历史。</p>
+<p>通过上面的介绍如果你还在困惑有virtualbox或vmware为什么还要加入vagrant，纠结于要不要使用，可以参考这个问答 <a href="http://segmentfault.com/q/1010000002623455" target="_blank" rel="noopener">使用vagrant的意义在哪</a>，另外docker作为后起之秀也可以做vagrant能完成的事情，stackoverflow有关于两位作者讨论各自应用场景的精彩”互掐”，<a href="http://stackoverflow.com/questions/16647069/should-i-use-vagrant-or-docker-io-for-creating-an-isolated-environment" target="_blank" rel="noopener">传送门→</a> （<a href="http://www.cnblogs.com/vikings-blog/p/3973265.html" target="_blank" rel="noopener">中文</a>）。</p>
+<h2 id="1-2-几个概念"><a href="#1-2-几个概念" class="headerlink" title="1.2 几个概念"></a>1.2 几个概念</h2><ul>
+<li><code>Provider</code>：供应商，在这里指Vagrant调用的虚拟化工具。Vagrant本身并没有能力创建虚拟机，它是调用一些虚拟化工具来创建，如VirtualBox、VMWare、Xen、Docker，甚至AWS，这些虚拟化工具只要安装好了，vagrant会自动封装在底层通过统一的命令调用。也就是说使用vagrant时你电脑上还需要安装对应的Provider，默认是免费开源的virtualbox。</li>
+</ul>
+<a id="more"></a>
+<ul>
+<li><p><code>Box</code>：可被Vagrant直接使用的虚拟机镜像文件，大小根据内容的不同从200M-2G不等。针对不同的Provider，Box文件的格式是不一样的，从 <a href="https://atlas.hashicorp.com/boxes/search?utm_source=vagrantcloud.com&amp;vagrantcloud=1" target="_blank" rel="noopener">vagrantcloud.com</a> 你可以找到社区维护的box。</p>
+</li>
+<li><p><code>Vagrantfile</code>：Vagrant根据Vagrantfile中的配置来创建虚拟机，是Vagrant的核心。在Vagrantfile文件中你需要指明使用哪个Box（可以下载好的或自己制作，或指定在线的URL地址），虚拟机使用的内存大小和CPU，需要预安装哪些软件，虚拟机的网络配置，与host的共享目录等。</p>
+</li>
+<li><p><code>Provisioner</code>：是Vagrant的插件的一种。大部分现成的box并不是你正好想要的，通过使用你熟悉的provisioner，比如<code>Puppet</code>，可以在你使用<code>vagrant up</code>启动虚拟机时自动的安装软件、修改配置等初始化操作。当然你也可以在最先启动虚拟机后，使用<code>vagrant ssh</code>进去然后手动安装软件，但毕竟不是所有人都是系统管理员，写好Vagrantfile后无需人工干预马上就可以使用vm。目前支持并实现的provisioning有Puppet、Salt、Ansible、Chef这些知名的自动化运维工具，当然需要一定的使用经验；也可以使用shell provisioner，故名思议这个插件就是通过执行shell命令完成统一的作用。</p>
+</li>
+<li><p><code>Guest Additions</code>：这个是常在下载 base box 介绍里有的，一般用来实现host到vm的端口转发、目录共享，在开发环境上都建议装上以便测试。</p>
+</li>
+</ul>
+<h1 id="2-安装vagrant"><a href="#2-安装vagrant" class="headerlink" title="2. 安装vagrant"></a>2. 安装vagrant</h1><ul>
+<li>VirtualBox: 4.3.12，<a href="https://www.virtualbox.org/wiki/Download_Old_Builds_4_3" target="_blank" rel="noopener">https://www.virtualbox.org/wiki/Download_Old_Builds_4_3</a> 。我上手使用的是4.3.20，折腾出过几个问题，据说说4.3.12版本较稳定。<br>建议选择VirtualBox ，即使你电脑上已经安装VMware Workstation或Fushion，它的vagrant插件还是要收费的</li>
+<li>Vagrant: 1.7.1，<a href="http://www.vagrantup.com/downloads-archive.html" target="_blank" rel="noopener">http://www.vagrantup.com/downloads-archive.html</a></li>
+</ul>
+<p>选择适合你的平台（Windows、Mac、Linux），下载对应格式的安装包。如Mac下 vagrant_1.7.1.dmg、VirtualBox-4.3.20-96997-OSX.dmg 。</p>
+<h1 id="3-使用vagrant打造一个本地开发环境"><a href="#3-使用vagrant打造一个本地开发环境" class="headerlink" title="3. 使用vagrant打造一个本地开发环境"></a>3. 使用vagrant打造一个本地开发环境</h1><p>本文将会演示从 <a href="https://atlas.hashicorp.com/nrel/boxes/CentOS-6.5-x86_64" target="_blank" rel="noopener">nrel CentOS6.5</a> 开始，安装必要的开发包、python、插件、Puppet，然后打包成一个box分发给团队的全过程。你也可以在别人box的基础上进一步通过Vagrantfile定制自己的环境。</p>
+<h2 id="3-1-初始化"><a href="#3-1-初始化" class="headerlink" title="3.1 初始化"></a>3.1 初始化</h2><h3 id="3-1-1-vagrant-box-add-box-name-box-url"><a href="#3-1-1-vagrant-box-add-box-name-box-url" class="headerlink" title="3.1.1 vagrant box add {box-name} {box-url}"></a>3.1.1 vagrant box add {box-name} {box-url}</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ vagrant box add ct65_00 Downloads/centos65.box </span><br><span class="line">==&gt; box: Adding box &apos;ct65_00&apos; (v0) for provider: </span><br><span class="line">    box: Downloading: file:///Users/sean/Downloads/centos65.box</span><br><span class="line">==&gt; box: Successfully added box &apos;ct65_00&apos; (v0) for &apos;virtualbox&apos;!</span><br><span class="line"></span><br><span class="line">$ ll ~/.vagrant.d/boxes/ct65_00</span><br><span class="line">$ vagrant box list</span><br><span class="line"></span><br><span class="line"># vagrant box list</span><br><span class="line">ct65_00   (virtualbox, 0)</span><br><span class="line">centos64-i386  (virtualbox, 0)</span><br></pre></td></tr></table></figure>
+<p>这一条命令就是根据给出的box（镜像）文件地址，解压一份到用户目录<code>~/.vagrant.d/boxes/{box-name}/0/virtualbox/</code>下，所以你尽量应该以同一用户来管理进行vagrant所有操作。</p>
+<p><em>F**K GFW</em><br>在GFW保护之下，这简单获取box文件反而一开始就难到我们了。官方提供的在线安装在墙外是极为方便的，<code>vagrant box add minimal/centos6</code>便自动从<code>vagrantcloud.com</code>(现更名为<code>https://atlas.hashicorp.com/search/boxes</code>)下载，直接进入第二步。</p>
+<p>还有一种方法是，先<code>vagrant init minimal/centos6</code>，然后直接启动<code>vagrant up --provider virtualbox</code>。当然这些都与下载boxes到本地效果是一样的，下载方法就是在vagrantcloud.com上点开你所需要的box版本，然后再URL里加入<code>/providers/virtualbox.box</code>便得到文件地址，如 <a href="https://atlas.hashicorp.com/hashicorp/boxes/precise64" target="_blank" rel="noopener">https://atlas.hashicorp.com/hashicorp/boxes/precise64</a> 对应的文件为 <a href="https://atlas.hashicorp.com/hashicorp/boxes/precise64/providers/virtualbox.box" target="_blank" rel="noopener">https://atlas.hashicorp.com/hashicorp/boxes/precise64/providers/virtualbox.box</a> 。</p>
+<p>在墙内直接在线安装启动box，会报错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">The box &apos;ubuntu/trusty64&apos; could not be found or</span><br><span class="line">could not be accessed in the remote catalog. If this is a private</span><br><span class="line">box on HashiCorp&apos;s Atlas, please verify you&apos;re logged in via</span><br><span class="line">`vagrant login`. Also, please double-check the name. The expanded</span><br><span class="line">URL and error message are shown below:</span><br><span class="line"></span><br><span class="line">URL: [&quot;https://atlas.hashicorp.com/ubuntu/trusty64&quot;]</span><br><span class="line">Error:</span><br></pre></td></tr></table></figure></p>
+<p>一个办法是ubuntu来 <a href="http://uec-images.ubuntu.com/vagrant/" target="_blank" rel="noopener">http://uec-images.ubuntu.com/vagrant/</a> 下载，centos来 <a href="http://nrel.github.io/vagrant-boxes/" target="_blank" rel="noopener">http://nrel.github.io/vagrant-boxes/</a> 下载。我也从墙外下了几个典型的box放到了自己的百度云上共享了:<a href="http://pan.baidu.com/s/1sjHQBa1" target="_blank" rel="noopener">http://pan.baidu.com/s/1sjHQBa1</a> 。</p>
+<p><em>2015-04-01更新：无意间发现现在不用梯子也可以访问了，Happy April Fool’s Day!</em></p>
+<h3 id="3-1-2-vagrant-init-box-name"><a href="#3-1-2-vagrant-init-box-name" class="headerlink" title="3.1.2 vagrant init {box-name}"></a>3.1.2 vagrant init {box-name}</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir ~/vagrant &amp;&amp; cd ~/vagrant  //这个目录的目的就是统一管理你的Vagrantfile</span><br><span class="line">$ vagrant init ct65_00</span><br><span class="line">A `Vagrantfile` has been placed in this directory. You are now</span><br><span class="line">ready to `vagrant up` your first virtual environment! Please read</span><br><span class="line">the comments in the Vagrantfile as well as documentation on</span><br><span class="line">`vagrantup.com` for more information on using Vagrant.</span><br><span class="line"></span><br><span class="line">$ vi Vagrantfile</span><br><span class="line">...</span><br><span class="line">Vagrant.configure(2) do |config|</span><br><span class="line">  config.vm.box = &quot;ct65_00&quot;</span><br><span class="line">  onfig.vm.network &quot;forwarded_port&quot;, guest: 80, host: 8080</span><br><span class="line">#  config.vm.synced_folder &quot;../data&quot;, &quot;/vagrant_data&quot;</span><br><span class="line">  config.vm.provider &quot;virtualbox&quot; do |vb|</span><br><span class="line">    vb.memory = &quot;384&quot;</span><br><span class="line">    vb.cpus = 1</span><br><span class="line">  end</span><br><span class="line">  config.vm.hostname = &quot;vg-ct65_00.tp-link.net&quot;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>init只是在当前目录生成一个<code>Vagrantfile</code>文件和<code>.vagrant/</code>目录，可以对它进行修改，比如定义 vm guest machine 的hostname、memory、cpu等，具体有关语法介绍见后文。</p>
+<p>用户后面<code>up</code>虚拟机，这个 box-name 与上面add的相同，如果是 base 则可以省略。</p>
+<h2 id="3-2-启动虚拟机"><a href="#3-2-启动虚拟机" class="headerlink" title="3.2 启动虚拟机"></a>3.2 启动虚拟机</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"># vagrant up</span><br><span class="line">Bringing machine &apos;default&apos; up with &apos;virtualbox&apos; provider...</span><br><span class="line">==&gt; default: Importing base box &apos;ct65_00&apos;...</span><br><span class="line">==&gt; default: Matching MAC address for NAT networking...</span><br><span class="line">==&gt; default: Setting the name of the VM: v-box_default_1427284884787_97348</span><br><span class="line">==&gt; default: Clearing any previously set network interfaces...</span><br><span class="line">==&gt; default: Preparing network interfaces based on configuration...</span><br><span class="line">    default: Adapter 1: nat</span><br><span class="line">==&gt; default: Forwarding ports...</span><br><span class="line">    default: 22 =&gt; 2222 (adapter 1)</span><br><span class="line">==&gt; default: Booting VM...</span><br><span class="line">==&gt; default: Waiting for machine to boot. This may take a few minutes...</span><br><span class="line">    default: SSH address: 127.0.0.1:2222</span><br><span class="line">    default: SSH username: vagrant</span><br><span class="line">    default: SSH auth method: private key</span><br><span class="line">    default: Warning: Connection timeout. Retrying...</span><br><span class="line">    default: Warning: Connection timeout. Retrying...</span><br><span class="line">    ...</span><br><span class="line">    default: Warning: Remote connection disconnect. Retrying...</span><br><span class="line">    default: Warning: Remote connection disconnect. Retrying...</span><br><span class="line">==&gt; default: Machine booted and ready!</span><br><span class="line">==&gt; default: Checking for guest additions in VM...</span><br><span class="line">==&gt; default: Mounting shared folders...</span><br><span class="line">    default: /vagrant =&gt; /root/vagrant/v-box/ct65_00</span><br></pre></td></tr></table></figure>
+<p>up过程是默认会根据当前目录下的Vagrantfile来启动vm，如果当前目录没有Vagrantfile，则去上层目录寻找，依次类推。第一次<code>vagrant up ct65_00</code>时会从<code>~/.vagrant.d/boxes</code>中导入相应的box文件到<code>~/VirtualBox VMs/</code>，可以通过<code>vboxmanage showvminfo {VM-ID}</code>看到该虚拟机的配置（Mac上为VBoxManage）。如果你想让虚拟机存储在指定位置，如我的Mac SSD硬盘空间贵，可以运行VirtualBox，手动设置存储/storage的路径。</p>
+<p>默认 localhost:2222 转发到 guest:22 以供ssh连接；用户名/密码：vagrant/vagrant；默认共享目录就是host上Vagrantfile所在目录；如果电脑配置比较低导致启动时间比较长，或者VirtualBox启动出错，可能会提示上面的 <a href="http://stackoverflow.com/questions/22575261/vagrant-stuck-connection-timeout-retrying" target="_blank" rel="noopener">Connection timeout</a> 。</p>
+<p>另外提示一下，某次我在Linux上测试，由于Linux host本身也是vSphere虚拟机，通过vagrant启动virtualbox另一个虚拟机（即嵌套），一直Retrying，后来根据上面 stackoverflow 打开了VBox GUI，发现是CPU架构的问题，一直堵塞，所以就不建议虚拟机上再装虚拟机了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">VT-x/AMD-V hardware acceleration is not available on your system. Your 64-bit guest will fail to detect a 64-bit CPU and will not be able to boot.</span><br></pre></td></tr></table></figure></p>
+<h2 id="3-2-连接虚拟机，初始化环境"><a href="#3-2-连接虚拟机，初始化环境" class="headerlink" title="3.2 连接虚拟机，初始化环境"></a>3.2 连接虚拟机，初始化环境</h2><h3 id="vagrant-ssh"><a href="#vagrant-ssh" class="headerlink" title="vagrant ssh"></a>vagrant ssh</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vagrant ssh</span><br><span class="line">Last login: Tue Mar 31 02:15:38 2015 from 10.0.2.2</span><br><span class="line">Welcome to your Vagrant-built virtual machine.</span><br></pre></td></tr></table></figure>
+<p>一般建立box时约定的用户名/密码：vagrant/vagrant，root密码也是 vagrant，默认的网络连接方式是Host-Only。</p>
+<h3 id="定制你的环境"><a href="#定制你的环境" class="headerlink" title="定制你的环境"></a>定制你的环境</h3><p>如安装jdk，创建用户，解压tomcat，修改server.xml，添加yum源等。这里一步到位，唯一要说明的是tomcat conf/server.xml 的<br><code>&lt;Context path=&quot;&quot; docBase=&quot;/vagrant_data&quot; reloadable=&quot;true&quot; &gt;...</code>应用目录设置为共享目录。</p>
+<h2 id="3-3-打包成box"><a href="#3-3-打包成box" class="headerlink" title="3.3 打包成box"></a>3.3 打包成box</h2><h3 id="3-3-1-安装必要软件"><a href="#3-3-1-安装必要软件" class="headerlink" title="3.3.1 安装必要软件"></a>3.3.1 安装必要软件</h3><p>打包是为了分发出去，做扩展用<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># yum install -y lrzsz telnet vim puppet puppetmaster</span><br></pre></td></tr></table></figure></p>
+<p>如果你是从0开始建立一个box，当然还需要创建vagrant用户以及public key，具体可以参考<a href="http://blog.csdn.net/samxx8/article/details/38943395" target="_blank" rel="noopener">如何制作一个vagrant的base box</a>。</p>
+<h3 id="3-3-2-安装Virtualbox-Guest-Additions"><a href="#3-3-2-安装Virtualbox-Guest-Additions" class="headerlink" title="3.3.2 安装Virtualbox Guest Additions"></a>3.3.2 安装Virtualbox Guest Additions</h3><p>每个人电脑上安装的Virtualbox版本很可能不一样，<code>vagrant up</code>可能会有提示版本不兼容（同一大版本号还好，可省略这一步），导致host到guest共享目录模块失败，最终无法启动虚拟机。</p>
+<p>安装方法可以有 <a href="https://github.com/dotless-de/vagrant-vbguest" target="_blank" rel="noopener">vagrant-vbguest</a>（注意这是vagrant插件，不是virtualbox插件），使用超级详细，只需执行<code>vagrant plugin install vagrant-vbguest</code>，默认从本地找 VBoxGuestAdditions.iso （各平台路径一般都可以找到），如果没找到则去<code>http://download.virtualbox.org/virtualbox/%{version}/VBoxGuestAdditions_%{version}.iso</code> 下载，直接启动vm便可安装或更新virtualbox guest additions ，甚至可以通过<code>vagrant vbguest</code>命令给正在运行的vm安装，缺点是 plugin install 得连网。下面是手动在vm内部安装：</p>
+<p>一般最小化的box不带有CDROM，需要通过VirtualBox图形化界面添加一个DVD/CD存储设备，然后在启动VM后 Devices -&gt; Insert Guest Additions CD 。（相信你可以可以找到办法直接挂载 .iso 文件到vm里面，免去添加多余设备）</p>
+<blockquote>
+<p>for linux : /usr/share/virtualbox/VBoxGuestAdditions.iso<br>for Mac : /Applications/VirtualBox.app/Contents/MacOS/VBoxGuestAdditions.iso<br>for Windows : %PROGRAMFILES%/Oracle/VirtualBox/VBoxGuestAdditions.iso</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo yum install linux-headers-$(uname -r) build-essential dkms </span><br><span class="line">$ sudo mount /dev/cdrom /media/cdrom</span><br><span class="line">$ sudo sh /media/cdrom/VBoxLinuxAdditions.run --nox11</span><br></pre></td></tr></table></figure>
+<p>官方参考：<a href="http://docs.vagrantup.com/v2/virtualbox/boxes.html" target="_blank" rel="noopener">http://docs.vagrantup.com/v2/virtualbox/boxes.html</a></p>
+<h3 id="3-3-3-vagrant-package"><a href="#3-3-3-vagrant-package" class="headerlink" title="3.3.3 vagrant package"></a>3.3.3 vagrant package</h3><p>打包导出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> vagrant package --output sean-vg-ct65_ts.box</span><br><span class="line">==&gt; default: Attempting graceful shutdown of VM...</span><br><span class="line">==&gt; default: Clearing any previously set forwarded ports...</span><br><span class="line">==&gt; default: Exporting VM...</span><br><span class="line">==&gt; default: Compressing package to: /Users/sean/vagrant/sean-vg-ct65_ts.box</span><br></pre></td></tr></table></figure></p>
+<p>当前目录下若存在同名package.box则会export失败。打包的来源并不是<code>.vagrant.d</code>而是VirtualBox虚拟机本身，可以通过<code>--base vm-name</code>来指定所导出的虚拟机名称，<code>--vagrantfile file-pathname</code>可以将Vagrantfile直接封进box中。以后就可以把这个 .box 文件分发给开发人员使用了。</p>
+<h1 id="4-其他"><a href="#4-其他" class="headerlink" title="4. 其他"></a>4. 其他</h1><h2 id="4-1-命令"><a href="#4-1-命令" class="headerlink" title="4.1 命令"></a>4.1 命令</h2><p><code>vagrant suspend</code>将虚拟机置于休眠状态。这时候主机会保存虚拟机的当前状态。再用vagrant up启动虚拟机时能够返回之前工作的状态。这种方式优点是休眠和启动速度都很快，只有几秒钟。缺点是需要额外的磁盘空间来存储当前状态。</p>
+<p><code>vagrant halt</code>则是关机。如果想再次启动还是使用vagrant up命令，不过需要多花些时间。</p>
+<p><code>vagrant destroy</code>则会将虚拟机从磁盘中删除。如果想重新创建还是使用vagrant up命令。</p>
+<p><code>vagrant reload</code>从Vagrantfile重新启动虚拟机。</p>
+<p><code>vagrant global-status</code>输出所有虚拟机当前运行状态，关机、已启动等。</p>
+<p>另外1.2以上版本的Vagrant还引用了插件机制。可以通过vagrant plugin来添加各种各样的plugin，这给Vagrant的应用带来了更大的灵活性和针对性。比如可以添加vagrant-windows的插件来增加对windows系统的支持，通过添加vagrant-aws插件来实现给AWS创建虚拟机的功能。你也可以编写自己的插件。由于Vagrant是ruby写的一个gem，其插件的编写也是使用的Ruby语言。</p>
+<p>关于 Vagrantfile说明以及网络、多机器管理的配置，见 <a href="http://seanlook.com/2015/04/01/vagrantfile/">Varantfile说明</a>。</p>
+<h2 id="4-2-问题集"><a href="#4-2-问题集" class="headerlink" title="4.2 问题集"></a>4.2 问题集</h2><ul>
+<li><p>选用配置略高一点的电脑做host，否则启动会相当慢而且会提示<code>Warning: Connection timeout. Retrying...</code>，如果在300s内没有boot up，你可能需要启用GUI界面可以帮我们诊断一些启动失败的问题，<code>vb.gui = true</code>。坚决不要在虚拟机里玩vagrant！</p>
+</li>
+<li><p>不要轻易在VirtualBox图形界面下强行关闭虚拟机，可能会出现意想不到的错误，如 The guest machine entered an invalid state while waiting for it<br>to boot. Valid states are ‘starting, running’. The machine is in the<br>‘poweroff’ state … 针对这个问题的解决办法，<a href="https://github.com/mitchellh/vagrant/issues/2157" target="_blank" rel="noopener">issue 2175</a> 没能搞定，直接destroy重来。</p>
+</li>
+<li><p>我在ubuntu trustry 64-bit 安装virtualbox时，提示依赖没装（libgl1-mesa-glx libqt4-network libqt4-opengl libqtcore4 libqtgui4 libxcursor1 libxinerama1 libxmu6 libxt6），<br>使用<code>apt-get install libqt4-opengl</code>来安装上面的依赖，如果报错<code>The following packages have unmet dependencies...</code>，执行<code>apt-get -f install</code> 解决。</p>
+</li>
+<li><p>安装 virtualbox guest additions 失败<br>在 3.3.2节安装Virtualbox Guest Additions时，运行<code>./media/cdrom/VBoxLinuxAdditions.run</code>后提示：</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">The headers for the current running kernel were not found. If the following module </span><br><span class="line">compilation fails then this could be the reason. The missing package can be probably</span><br><span class="line"> installed with yum install kernel-devel-2.6.32-431.el6.x86_64</span><br><span class="line"></span><br><span class="line">Building the main Guest Additions module                   [FAILED]</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>关机后启动虚拟机，相应的会提示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Failed to mount folders in Linux guest. This is usually because the &quot;vboxsf&quot; file </span><br><span class="line">system is not available. Please verify that the guest additions are properly </span><br><span class="line">installed in the guest and can work properly. The command attempted was:</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">mount -t vboxsf -o uid=id -u vagrant,gid=getent group vagrant | cut -d: -f3 vagrant /vagrant</span><br><span class="line">mount -t vboxsf -o uid=id -u vagrant,gid=id -g vagrant vagrant /vagrant</span><br><span class="line"></span><br><span class="line">The error output from the last command was:</span><br><span class="line"></span><br><span class="line">/sbin/mount.vboxsf: mounting failed with the error: No such device</span><br></pre></td></tr></table></figure></p>
+<p>原因就是旧版本卸载成功但新版本guest additions却因为<code>yum install kernel-devel</code>找不到软件包（No package available）失败。这种情况很少见，kernel-devel 一般都可以装上去解决。如果像我这样提示死活没这个软件包的，换个box吧！</p>
+<ul>
+<li><p>硬盘扩容<br>进入到虚拟机后，通过<code>df -h</code>你可能看到磁盘空间不足，需要扩容（不允许缩小空间），就可以通过以下方法完成。</p>
+<ol>
+<li><p>手动方式，与是否使用vagrant无关<br>halt关闭虚拟机虚拟机后，使用 <code>VBoxManage modifyhd box-disk1.vdi --resize 10240</code> 即完成修改。但是如果虚拟机磁盘格式创建时使用的是vmdk，则不支持直接vmdk格式修改，需要通过<code>VBoxManage clonehd box_disk1.vmdk box_disk2.vdi --format VDI</code>转换成vdi格式，然后在图形化VirtualBox中选择这个新的磁盘。另外提醒一句，这里的扩容是修改动态分配的磁盘的虚拟大小而不是实际大小，所以假如resize后的值比预分配的磁盘要小的话，会提示 Progress state: VBOX_E_NOT_SUPPORTED ..VBoxManage: error: Resize hard disk operation for this format is not implemented yet!<br>相关参考：<a href="http://stackoverflow.com/questions/14917353/resizing-disk-space-on-vagrant-box" target="_blank" rel="noopener">Resizing disk space on vagrant box</a>、<br><a href="http://www.streamwave.com/systems-administration/how-to-extend-your-virtualbox-virtual-hard-drive/" target="_blank" rel="noopener">VirtualBox VBOX_E_NOT_SUPPORTED Drive Resize Error</a>、<a href="https://gist.github.com/christopher-hopper/9755310" target="_blank" rel="noopener">Resize a Hard Disk for a Virtual Machine</a> 。</p>
+</li>
+<li><p>通过Vagrantfile指令修改</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">config.vm.provider &quot;virtualbox&quot; do |vb|</span><br><span class="line">  vb.customize &apos;pre-boot&apos;, [&apos;modifyhd&apos;, &apos;e91678c3-b49b-489b-b280-4e138533252d&apos;, &apos;--resize&apos;, &apos;10240&apos;]</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+</ul>
+<p>上面那串数字字母，是虚拟磁盘的UUID，可以先通过<code>ps -ef|grep Virtual</code>(Mac, <code>virtualbox</code> in Linux )查到虚拟机UUID，再通过<code>VBoxManage showvminfo {VM UUID}|grep vdi</code>看到这个 disk UUID。参考 <a href="https://github.com/mitchellh/vagrant/issues/2339" target="_blank" rel="noopener">Add some way to increase disk space from Vagrantfile</a>。<br>扩容完成后把Vagrantfile中对应的部分去掉，以免每次启动都进行这步操作。</p>
+<ul>
+<li><a href="http://www.cnblogs.com/huang0925/p/3349841.html" target="_blank" rel="noopener">Hello Vagrant</a></li>
+<li><a href="http://segmentfault.com/a/1190000000264347" target="_blank" rel="noopener">使用 Vagrant 打造跨平台开发环境</a></li>
+<li><a href="https://github.com/astaxie/Go-in-Action/blob/master/ebook/zh/01.2.md" target="_blank" rel="noopener">Vagrant安装配置</a></li>
+<li><a href="http://docs.vagrantup.com/v2/virtualbox/boxes.html" target="_blank" rel="noopener">Creating a Base Box</a></li>
+<li><a href="http://blog.csdn.net/samxx8/article/details/38943395" target="_blank" rel="noopener">如何制作一个vagrant的base box</a></li>
+<li><a href="http://blog.icodeu.com/?tag=vagrant" target="_blank" rel="noopener">http://blog.icodeu.com/?tag=vagrant</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/vagrant/" rel="tag"># vagrant</a>
+          
+            <a href="/tags/virtualbox/" rel="tag"># virtualbox</a>
+          
+            <a href="/tags/虚拟化/" rel="tag"># 虚拟化</a>
+          
+            <a href="/tags/开发环境/" rel="tag"># 开发环境</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/03/14/sleep-late-for-what/" rel="next" title="习惯晚睡">
+                <i class="fa fa-chevron-left"></i> 习惯晚睡
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/04/05/vmware-vcenter-vconverter/" rel="prev" title="使用vmware vconverter从物理机迁移系统到虚拟机P2V（多图）">
+                使用vmware vconverter从物理机迁移系统到虚拟机P2V（多图） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar_sean.jpg"
+                alt="seanlook" />
+            
+              <p class="site-author-name" itemprop="name">seanlook</p>
+              <p class="site-description motion-element" itemprop="description">Stay hungry, stay foolish.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">120</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">121</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/seanlook" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:seanlook7@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="http://weibo.com/zhouxiaozhxi" target="_blank" title="Weibo">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>Weibo</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-vagrant介绍"><span class="nav-text">1. vagrant介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-vagrant能做什么"><span class="nav-text">1.1 vagrant能做什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-几个概念"><span class="nav-text">1.2 几个概念</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-安装vagrant"><span class="nav-text">2. 安装vagrant</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-使用vagrant打造一个本地开发环境"><span class="nav-text">3. 使用vagrant打造一个本地开发环境</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-初始化"><span class="nav-text">3.1 初始化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-1-vagrant-box-add-box-name-box-url"><span class="nav-text">3.1.1 vagrant box add {box-name} {box-url}</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-2-vagrant-init-box-name"><span class="nav-text">3.1.2 vagrant init {box-name}</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-启动虚拟机"><span class="nav-text">3.2 启动虚拟机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-连接虚拟机，初始化环境"><span class="nav-text">3.2 连接虚拟机，初始化环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#vagrant-ssh"><span class="nav-text">vagrant ssh</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定制你的环境"><span class="nav-text">定制你的环境</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-打包成box"><span class="nav-text">3.3 打包成box</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-1-安装必要软件"><span class="nav-text">3.3.1 安装必要软件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-2-安装Virtualbox-Guest-Additions"><span class="nav-text">3.3.2 安装Virtualbox Guest Additions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-3-vagrant-package"><span class="nav-text">3.3.3 vagrant package</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-其他"><span class="nav-text">4. 其他</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-命令"><span class="nav-text">4.1 命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-问题集"><span class="nav-text">4.2 问题集</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2014 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">seanlook</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+  <div style="display: none;">
+    <script src="//s95.cnzz.com/z_stat.php?id=1253513173&web_id=1253513173" language="JavaScript"></script>
+  </div>
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seanlookcom.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://seanlook.com/2015/03/25/vagrant/';
+          this.page.identifier = '2015/03/25/vagrant/';
+          this.page.title = '在Mac在Mac/win7下上使用Vagrant打造本地开发环境';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://seanlookcom.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("NliJVBn0857TMk5HYrIRt5wp-gzGzoHsz", "jB9B4QG8Rm8YP04RQqnsKy5M");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.lug.ustc.edu.cn/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="mysql,mysql优化," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Sean's Notes" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="在看线上一个 MySQL innodb status 时，发现有死锁信息，而且出现的频率还不低。于是分析了一下，把过程记录下来。 1. 概要表结构脱敏处理：12345678910111213CREATE TABLE t_mytb1 (  f_id int(11) unsigned NOT NULL AUTO_INCREMENT,  f_fid int(11) unsigned NOT NULL D">
+<meta name="keywords" content="mysql,mysql优化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="index merge 引起的死锁分析">
+<meta property="og:url" content="http://seanlook.com/2017/03/11/mysql-index_merge-deadlock/index.html">
+<meta property="og:site_name" content="Sean&#39;s Notes">
+<meta property="og:description" content="在看线上一个 MySQL innodb status 时，发现有死锁信息，而且出现的频率还不低。于是分析了一下，把过程记录下来。 1. 概要表结构脱敏处理：12345678910111213CREATE TABLE t_mytb1 (  f_id int(11) unsigned NOT NULL AUTO_INCREMENT,  f_fid int(11) unsigned NOT NULL D">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://7q5fot.com1.z0.glb.clouddn.com/mysql-secondary-index-merge.png">
+<meta property="og:image" content="http://7q5fot.com1.z0.glb.clouddn.com/mysql-index_merge-deadlock.png">
+<meta property="og:updated_time" content="2017-03-11T08:32:49.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="index merge 引起的死锁分析">
+<meta name="twitter:description" content="在看线上一个 MySQL innodb status 时，发现有死锁信息，而且出现的频率还不低。于是分析了一下，把过程记录下来。 1. 概要表结构脱敏处理：12345678910111213CREATE TABLE t_mytb1 (  f_id int(11) unsigned NOT NULL AUTO_INCREMENT,  f_fid int(11) unsigned NOT NULL D">
+<meta name="twitter:image" content="http://7q5fot.com1.z0.glb.clouddn.com/mysql-secondary-index-merge.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: 'WNWHBKUL26',
+      apiKey: 'cec5cc7d455c77d448433aa60f989766',
+      indexName: 'seanlook',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://seanlook.com/2017/03/11/mysql-index_merge-deadlock/"/>
+
+
+
+
+
+  <title>index merge 引起的死锁分析 | Sean's Notes</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?62e026415456b0339db6d3912577a9fa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Sean's Notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Stay hungry, stay foolish.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://seanlook.com/2017/03/11/mysql-index_merge-deadlock/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="seanlook">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar_sean.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Sean's Notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">index merge 引起的死锁分析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-11T16:32:49+08:00">
+                2017-03-11
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于&#58;</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2017-03-11T16:32:49+08:00">
+                2017-03-11
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index">
+                    <span itemprop="name">MySQL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/03/11/mysql-index_merge-deadlock/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2017/03/11/mysql-index_merge-deadlock/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/03/11/mysql-index_merge-deadlock/" class="leancloud_visitors" data-flag-title="index merge 引起的死锁分析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数&#58;</span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在看线上一个 MySQL innodb status 时，发现有死锁信息，而且出现的频率还不低。于是分析了一下，把过程记录下来。</p>
+<h2 id="1-概要"><a href="#1-概要" class="headerlink" title="1. 概要"></a>1. 概要</h2><p>表结构脱敏处理：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE t_mytb1 (</span><br><span class="line">  f_id int(11) unsigned NOT NULL AUTO_INCREMENT,</span><br><span class="line">  f_fid int(11) unsigned NOT NULL DEFAULT &apos;0&apos;,</span><br><span class="line">  f_sid int(11) unsigned NOT NULL DEFAULT &apos;0&apos;,</span><br><span class="line">  f_mode varchar(32) NOT NULL DEFAULT &apos;&apos;,</span><br><span class="line">  f_read int(11) unsigned NOT NULL DEFAULT &apos;0&apos;,</span><br><span class="line">  f_xxx1 int(11) unsigned NOT NULL DEFAULT &apos;0&apos;,</span><br><span class="line">  f_xxx2 int(11) unsigned NOT NULL DEFAULT &apos;0&apos;,</span><br><span class="line">  f_wx_zone int(11) unsigned NOT NULL DEFAULT &apos;0&apos;,</span><br><span class="line">  PRIMARY KEY (f_id),</span><br><span class="line">  KEY idx_sid (f_sid),</span><br><span class="line">  KEY idx_fid (f_fid)</span><br><span class="line">) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;</span><br></pre></td></tr></table></figure></p>
+<p>死锁信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">LATEST DETECTED DEADLOCK</span><br><span class="line">------------------------</span><br><span class="line">2017-02-28 13:58:29 7f25a3efd700</span><br><span class="line">*** (1) TRANSACTION:</span><br><span class="line">TRANSACTION 4907718431, ACTIVE 0.010 sec fetching rows</span><br><span class="line">mysql tables in use 3, locked 3</span><br><span class="line">LOCK WAIT 154 lock struct(s), heap size 30248, 10 row lock(s)</span><br><span class="line">LOCK BLOCKING MySQL thread id: 13589250 block 13589247</span><br><span class="line">MySQL thread id 13589247, OS thread handle 0x7f25a17e3700, query id 27061926722 11.xx.52.xx ecweb Searching rows for update</span><br><span class="line">UPDATE `d_db1`.`t_mytb1` SET `f_read` = f_read+1 WHERE (f_fid=91243) AND (f_sid=100) AND (f_mode=&apos;浏览器&apos;)</span><br><span class="line">*** (1) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line">RECORD LOCKS space id 13288 page no 375 n bits 352 index `PRIMARY` of table `d_db1`.`t_mytb1` trx id 4907718431 lock_mode X locks rec but not gap waiting</span><br><span class="line">Record lock, heap no 245 PHYSICAL RECORD: n_fields 10; compact format; info bits 0</span><br><span class="line"> 0: len 4; hex 0000a63b; asc    ;;;</span><br><span class="line"> 1: len 6; hex 0001246304a7; asc   $c  ;;</span><br><span class="line"> 2: len 7; hex 7f000ac0162428; asc      $(;;</span><br><span class="line"> 3: len 4; hex 00016470; asc   dp;;</span><br><span class="line"> 4: len 4; hex 00000064; asc    d;;</span><br><span class="line"> 5: len 9; hex e6b58fe8a788e599a8; asc          ;;</span><br><span class="line"> 6: len 4; hex 0000244f; asc   $O;;</span><br><span class="line"> 7: len 4; hex 0000007c; asc    |;;</span><br><span class="line"> 8: len 4; hex 00000000; asc     ;;</span><br><span class="line"> 9: len 4; hex 00000000; asc     ;;</span><br><span class="line"></span><br><span class="line">*** (2) TRANSACTION:</span><br><span class="line">TRANSACTION 4907718435, ACTIVE 0.007 sec fetching rows</span><br><span class="line">mysql tables in use 3, locked 3</span><br><span class="line">154 lock struct(s), heap size 30248, 3 row lock(s)</span><br><span class="line">MySQL thread id 13589250, OS thread handle 0x7f25a3efd700, query id 27061926757 11.xx.104.xxx ecweb Searching rows for update</span><br><span class="line">UPDATE `d_db1`.`t_mytb1` SET `f_read` = f_read+1 WHERE (f_fid=91248) AND (f_sid=100) AND (f_mode=&apos;浏览器&apos;)</span><br><span class="line">*** (2) HOLDS THE LOCK(S):</span><br><span class="line">RECORD LOCKS space id 13288 page no 375 n bits 352 index `PRIMARY` of table `d_db1`.`t_mytb1` trx id 4907718435 lock_mode X locks rec but not gap</span><br><span class="line">Record lock, heap no 245 PHYSICAL RECORD: n_fields 10; compact format; info bits 0</span><br><span class="line"> 0: len 4; hex 0000a63b; asc    ;;;  -- 42555</span><br><span class="line"> 1: len 6; hex 0001246304a7; asc   $c  ;;  -- 4905436327</span><br><span class="line"> 2: len 7; hex 7f000ac0162428; asc      $(;;</span><br><span class="line"> 3: len 4; hex 00016470; asc   dp;;  -- 91248</span><br><span class="line"> 4: len 4; hex 00000064; asc    d;;  -- 100</span><br><span class="line"> 5: len 9; hex e6b58fe8a788e599a8; asc          ;;</span><br><span class="line"> 6: len 4; hex 0000244f; asc   $O;;  -- 9295</span><br><span class="line"> 7: len 4; hex 0000007c; asc    |;;  -- 124</span><br><span class="line"> 8: len 4; hex 00000000; asc     ;;</span><br><span class="line"> 9: len 4; hex 00000000; asc     ;;</span><br><span class="line"></span><br><span class="line">*** (2) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line">RECORD LOCKS space id 13288 page no 202 n bits 1272 index `idx_sid` of table `d_db1`.`t_mytb1` trx id 4907718435 lock_mode X locks rec but not gap waiting</span><br><span class="line">Record lock, heap no 705 PHYSICAL RECORD: n_fields 2; compact format; info bits 0</span><br><span class="line"> 0: len 4; hex 00000064; asc    d;;  -- 100</span><br><span class="line"> 1: len 4; hex 0000a633; asc    3;;  -- 42547</span><br><span class="line"></span><br><span class="line">*** WE ROLL BACK TRANSACTION (2)</span><br></pre></td></tr></table></figure></p>
+<p>乍一看很奇怪，tx1和tx2 两个 UPDATE 各自以 f_fid 为条件更新的记录互不影响才对，即使 91243，91248 两个值有可能出现在同一条数据上（因为f_fid上是二级索引），那顶多也就是个更新锁等待，谁后来谁等待，怎么会出现互相争用对方已持有的锁，被死锁检测机制捕获？</p>
+<p>当然,把 update 语句拿到数据库中 EXPLAIN 一下就可以看出端倪。这里不妨先分析一下输出的锁情况：</p>
+<p><strong>先看 Tx2 (对应trx id 4907718435)</strong> :  </p>
+<ol>
+<li><p><code>RECORD LOCKS space id 13288 page no 375 n bits 352</code> 告诉我们是表空间id 13288 (可从 <code>information_schema.INNODB_SYS_DATAFILES</code> 查到对应ibd文件) 即 t_mytb1 表，第 375 号页面的 245 位置的记录被锁，并且是 idx PRIMARY 上的记录锁（注：本实例隔离级别为RC）。 Tx2正持有这把记录锁。<br>因为是聚集索引，显示了完整记录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0: 主键f_id=42555</span><br><span class="line">1: DB_TRX_ID = 4905436327</span><br><span class="line">2: DB_ROLL_PTR指向undo记录的地址</span><br><span class="line">3: f_fid=91248</span><br><span class="line">4: f_sid=100</span><br><span class="line">   ...</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>然而Tx2还在等待一个记录锁（lock_mode X locks rec but not gap waiting），但这把锁来自二级索引 <code>idx_sid</code> 索引上的记录锁。在 RC 级别下没有GAP lock，行锁除了加在符合条件的二级索引 f_sid=100 上外，还会对主键加record lock。<br>二级索引值：</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0: f_sid=100</span><br><span class="line">1: 主键f_id=42547</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>明显它们是两条不同的记录。</p>
+<p><strong>再看 Tx1（对应trx id 4907718431）</strong><br>Tx1 事务等待的锁，就是上面 Tx2 已持有的记录锁 f_id=42555 。但是由于输出的关系，没有看到它持有的锁。既然这里出现死锁，可以推断，Tx1执行update时，已获得 f_id=42547 的记录锁，这样才导致死锁，否则的话只会出现一方等待。示意图如下：</p>
+<p><img src="http://7q5fot.com1.z0.glb.clouddn.com/mysql-secondary-index-merge.png" alt=""></p>
+<p>InnoDB最终选择回滚 Tx2 是可以理解的 —— 它只获得了一个记录锁，资源占用最少。目前还无法解释的是关于锁数量这一部分：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql tables in use 3, locked 3</span><br><span class="line">154 lock struct(s), heap size 30248, 3 row lock(s)</span><br></pre></td></tr></table></figure></p>
+<h2 id="2-死锁产生的原因-——-index-merge"><a href="#2-死锁产生的原因-——-index-merge" class="headerlink" title="2. 死锁产生的原因 —— index merge"></a>2. 死锁产生的原因 —— index merge</h2><p>上面任何一个 update 的explain结果：<br><img src="http://7q5fot.com1.z0.glb.clouddn.com/mysql-index_merge-deadlock.png" alt=""></p>
+<p>可以看到 EXTRA 列 <code>Using intersect(idx_sid, idx_fid)</code>。</p>
+<p>索引合并是 5.0 就引入的一种优化手段，意指在查询语句里，可以在一个表上使用多个索引，同时扫描，最后进行结果合并。上面的例子里，条件 <code>f_fid=xxx and f_sid=xxx</code>，因为表上有 <em>f_fid</em> 和 <em>f_sid</em> 两个单列索引，优化器在成本模型里进行估算，认为一边使用 f_fid=91243 索引扫描，一边使用 f_sid=100 索引扫描，然后对两个结果集取交集，会更快。结果在高并发更新情况下：</p>
+<ul>
+<li>Tx2通过 f_fid 索引锁住了记录 42555，欲通过 f_sid 锁定另一条记录 42547</li>
+<li>Tx1 已通过 f_sid 锁定 42547，欲通过 f_fid 锁住记录42555</li>
+<li>死锁发生</li>
+</ul>
+<h3 id="关于索引合并"><a href="#关于索引合并" class="headerlink" title="关于索引合并"></a>关于索引合并</h3><p>intersection 只是 索引合并中的一种，还有 union, sort_union 。可以用到  index_merge 是有比较苛刻的条件。</p>
+<ol>
+<li>首先是 Range 优先(&gt;5.6.7)。比如 key1=1 or (key1=2 and key2=3)，其中key1是可以转化成 range scan 的，不会使用 index merge union</li>
+<li>其次，Intersect和Union要符合 ROR，即 Rowid-Ordered-Retrival：<blockquote>
+<p>Intersect和Union都需要使用的索引是ROR的，也就时ROWID ORDERED，即针对不同的索引扫描出来的数据必须是同时按照ROWID排序的，这里的 ROWID其实也就是InnoDB的主键(如果不定义主键，InnoDB会隐式添加ROWID列作为主键)。只有每个索引是ROR的，才能进行归并排序，你懂的。 当然你可能会有疑惑，查不记录后内部进行一次sort不一样么，何必必须要ROR呢，不错，所以有了SORT-UNION。SORT-UNION就是每个非ROR的索引 排序后再进行Merge<br> – 来自 <a href="http://www.cnblogs.com/nocode/archive/2013/01/28/2880654.html" target="_blank" rel="noopener">http://www.cnblogs.com/nocode/archive/2013/01/28/2880654.html</a></p>
+</blockquote>
+</li>
+</ol>
+<p>像 <em>key1=v1 or key2=v2</em> ， key1与key2是单列索引，并且无其它索引可用，就有可能看到 Using Union(xx,xxx) 。更多内容可见参考链接。</p>
+<h2 id="3-解决-——-加联合索引"><a href="#3-解决-——-加联合索引" class="headerlink" title="3. 解决 —— 加联合索引"></a>3. 解决 —— 加联合索引</h2><p>解决这个死锁可能你也想到了，添加联合索引 <code>idx_fid_sid(f_fid, f_sid)</code>，这样一来查询会选择这一个索引，至于 idx_sid 这个单列索引还需不需要，看业务场景。</p>
+<p>另外，如果懂点业务的话，会发现这个更新之所以这么频繁，实际上是一个阅读量计数的功能，放到redis里可极大的提高并发能力，定时持久化到mysql表。</p>
+<p>最后提一句 index_merge 是有选项可以关闭的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select @@optimizer_switch;</span><br><span class="line">index_merge=on,index_merge_union=on,index_merge_sort_union=on,index_merge_intersection=on ...</span><br></pre></td></tr></table></figure></p>
+<p>如果优化器选择了index_merge，一般是索引没建好，我看不让它使用比较更好。</p>
+<p><strong> 参考文章 </strong>  </p>
+<ol>
+<li><a href="http://www.orczhou.com/index.php/2013/01/mysql-source-code-query-optimization-index-merge/" target="_blank" rel="noopener">MySQL优化器：index merge介绍</a></li>
+<li><a href="http://hidba.org/?p=1065" target="_blank" rel="noopener">MySQL update use index merge(Using intersect) increase chances for deadlock</a></li>
+<li><a href="https://dev.mysql.com/doc/refman/5.6/en/index-merge-optimization.html" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/5.6/en/index-merge-optimization.html</a></li>
+</ol>
+<hr>
+<p>  原文链接地址：<a href="http://seanlook.com/2017/03/11/mysql-index_merge-deadlock/">http://seanlook.com/2017/03/11/mysql-index_merge-deadlock/</a></p>
+<hr>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mysql/" rel="tag"># mysql</a>
+          
+            <a href="/tags/mysql优化/" rel="tag"># mysql优化</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/03/mysql-flashback_use_purged-binlog/" rel="next" title="MySQL根据离线binlog快速“闪回”">
+                <i class="fa fa-chevron-left"></i> MySQL根据离线binlog快速“闪回”
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/27/mysql-ppt-charset-conversion-acmug/" rel="prev" title="一次艰辛的字符集转换历程 ACMUG分享">
+                一次艰辛的字符集转换历程 ACMUG分享 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar_sean.jpg"
+                alt="seanlook" />
+            
+              <p class="site-author-name" itemprop="name">seanlook</p>
+              <p class="site-description motion-element" itemprop="description">Stay hungry, stay foolish.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">120</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">121</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/seanlook" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:seanlook7@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="http://weibo.com/zhouxiaozhxi" target="_blank" title="Weibo">
+                      
+                        <i class="fa fa-fw fa-weibo"></i>Weibo</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-概要"><span class="nav-text">1. 概要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-死锁产生的原因-——-index-merge"><span class="nav-text">2. 死锁产生的原因 —— index merge</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#关于索引合并"><span class="nav-text">关于索引合并</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-解决-——-加联合索引"><span class="nav-text">3. 解决 —— 加联合索引</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2014 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">seanlook</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a></div>
+
+
+
+
+        
+
+
+
+
+
+
+
+  <div style="display: none;">
+    <script src="//s95.cnzz.com/z_stat.php?id=1253513173&web_id=1253513173" language="JavaScript"></script>
+  </div>
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seanlookcom.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://seanlook.com/2017/03/11/mysql-index_merge-deadlock/';
+          this.page.identifier = '2017/03/11/mysql-index_merge-deadlock/';
+          this.page.title = 'index merge 引起的死锁分析';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://seanlookcom.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("NliJVBn0857TMk5HYrIRt5wp-gzGzoHsz", "jB9B4QG8Rm8YP04RQqnsKy5M");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
